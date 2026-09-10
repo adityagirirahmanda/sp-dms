@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Setangkai Project — Sistem Manajemen</title>
+<title>Isi Data Acara — Setangkai Project</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
   :root{
     --bg:#FAF6EF;
@@ -22,8 +23,6 @@
     --danger-soft:#F3E1DE;
     --success:#3E6B4F;
     --success-soft:#E4EDE6;
-    --gold:#B08D57;
-    --gold-soft:#F1E9D8;
     --radius:10px;
     --shadow: 0 1px 2px rgba(42,42,36,0.06), 0 4px 16px rgba(42,42,36,0.05);
   }
@@ -34,6 +33,7 @@
     background:var(--bg);
     color:var(--ink);
     -webkit-font-smoothing:antialiased;
+    min-height:100vh;
   }
   h1,h2,h3,.display{
     font-family:'Fraunces',serif;
@@ -41,1668 +41,343 @@
     letter-spacing:-0.01em;
     color:var(--primary-dark);
   }
-  a{color:inherit;text-decoration:none;}
   button{font-family:'Inter',sans-serif;cursor:pointer;}
   input,select,textarea{font-family:'Inter',sans-serif;}
-  ::selection{background:var(--accent-soft);}
 
-  #app{display:flex;min-height:100vh;}
+  #app{max-width:640px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;}
 
-  .sidebar{
-    width:236px;flex-shrink:0;background:var(--primary);color:#F4EFE4;
-    display:flex;flex-direction:column;padding:26px 18px;position:sticky;top:0;height:100vh;
+  /* ---- Welcome screen ---- */
+  .welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;}
+  .welcome .tag{font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:10px;}
+  .welcome h1{font-size:30px;margin:0 0 12px 0;line-height:1.25;}
+  .welcome p{color:var(--ink-soft);font-size:14.5px;line-height:1.6;max-width:420px;margin:0 0 30px 0;}
+  .welcome .btn-main{display:inline-flex;align-items:center;gap:8px;background:var(--primary);color:#fff;border:none;border-radius:999px;padding:15px 30px;font-size:15px;font-weight:600;box-shadow:var(--shadow);transition:background .15s ease, transform .1s ease;}
+  .welcome .btn-main:hover{background:var(--primary-dark);}
+  .welcome .btn-main:active{transform:scale(0.98);}
+  .welcome-badge{width:64px;height:64px;border-radius:50%;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;margin-bottom:22px;}
+  .welcome-badge svg{width:28px;height:28px;color:var(--primary);}
+
+  /* ---- Form screen ---- */
+  .formscreen{flex:1;padding:28px 20px 60px 20px;}
+  .fs-head{margin-bottom:22px;}
+  .fs-head h2{font-size:21px;margin:0 0 6px 0;}
+  .fs-head p{color:var(--ink-soft);font-size:13.5px;margin:0;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px;}
+  .field .opt{font-weight:400;color:var(--ink-soft);}
+  .field input, .field select, .field textarea{
+    width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:#fff;color:var(--ink);
   }
-  .brand{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:0 6px 20px 6px;margin-bottom:8px;border-bottom:1px solid rgba(244,239,228,0.14);}
-  .brand-logo{width:100%;max-width:170px;height:auto;display:block;}
-  .brand-text .tag{font-size:10.5px;color:#C9C2AE;letter-spacing:0.02em;margin-top:2px;}
+  .field input:focus, .field select:focus, .field textarea:focus{outline:none;border-color:var(--primary);}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media (max-width:480px){ .field-row{grid-template-columns:1fr;} }
+  .section-title{font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--accent);font-weight:700;margin:26px 0 12px 0;}
+  .section-title:first-child{margin-top:0;}
+  .hint{font-size:12px;color:var(--ink-soft);margin-top:-8px;margin-bottom:16px;line-height:1.5;}
 
-  .nav{display:flex;flex-direction:column;gap:2px;margin-top:14px;}
-  .nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:8px;font-size:14px;color:#DAD4C2;transition:background .15s ease, color .15s ease;}
-  .nav-item svg{width:17px;height:17px;flex-shrink:0;opacity:0.85;}
-  .nav-item:hover{background:rgba(244,239,228,0.08);color:#fff;}
-  .nav-item.active{background:rgba(244,239,228,0.14);color:#fff;font-weight:600;}
-  .nav-spacer{flex:1;}
-  .sidebar-foot{font-size:11px;color:#9C9683;padding:10px 6px 0 6px;border-top:1px solid rgba(244,239,228,0.14);margin-top:14px;}
-  .sync-line{font-size:10.5px;margin-top:6px;display:flex;align-items:center;gap:6px;}
-  .sync-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#8A8470;}
-  .sync-dot.ok{background:#7BC79A;}
-  .sync-dot.err{background:#D98E80;}
-  .sync-dot.syncing{background:#E0C989;}
-  .code-box{width:100%;min-height:260px;font-family:'Courier New',monospace;font-size:11px;line-height:1.6;padding:14px;border:1px solid var(--border);border-radius:8px;background:#22392C;color:#D9E5DC;resize:vertical;}
+  #map{height:230px;border-radius:8px;border:1px solid var(--border);margin-bottom:10px;}
+  .loc-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .btn-ghost{background:var(--primary-soft);color:var(--primary-dark);border:none;border-radius:8px;padding:9px 14px;font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;}
+  .btn-ghost:hover{background:#DCE4DA;}
+  .loc-status{font-size:12.5px;color:var(--ink-soft);margin-bottom:10px;}
+  .loc-status.picked{color:var(--success);font-weight:600;}
 
-  .main{flex:1;min-width:0;display:flex;flex-direction:column;}
-  .topbar{display:flex;align-items:center;justify-content:space-between;padding:24px 34px 18px 34px;}
-  .topbar .titles h1{font-size:24px;margin:0;}
-  .topbar .titles p{margin:3px 0 0 0;color:var(--ink-soft);font-size:13.5px;}
-  .content{padding:0 34px 40px 34px;flex:1;}
+  .submit-bar{margin-top:26px;}
+  .btn-submit{width:100%;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:14px;font-size:15px;font-weight:700;box-shadow:var(--shadow);}
+  .btn-submit:hover{background:var(--primary-dark);}
+  .btn-submit:disabled{opacity:0.6;cursor:not-allowed;}
+  .err-text{color:var(--danger);font-size:12.5px;margin-top:10px;text-align:center;}
 
-  .btn{display:inline-flex;align-items:center;gap:7px;border:1px solid transparent;border-radius:8px;padding:9px 16px;font-size:13.5px;font-weight:600;background:var(--primary);color:#fff;transition:background .15s ease, transform .1s ease;}
-  .btn:hover{background:var(--primary-dark);}
-  .btn:active{transform:translateY(1px);}
-  .btn.secondary{background:var(--surface);color:var(--ink);border:1px solid var(--border);}
-  .btn.secondary:hover{background:var(--primary-soft);}
-  .btn.danger{background:var(--danger);}
-  .btn.danger:hover{background:#8A382F;}
-  .btn.ghost{background:transparent;color:var(--ink-soft);padding:7px 10px;}
-  .btn.ghost:hover{background:var(--border);color:var(--ink);}
-  .btn:disabled{opacity:0.5;cursor:not-allowed;}
-  .btn svg{width:15px;height:15px;}
+  /* ---- Success screen ---- */
+  .success{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;}
+  .success-badge{width:64px;height:64px;border-radius:50%;background:var(--success-soft);display:flex;align-items:center;justify-content:center;margin-bottom:20px;}
+  .success-badge svg{width:30px;height:30px;color:var(--success);}
+  .success h1{font-size:24px;margin:0 0 10px 0;}
+  .success p{color:var(--ink-soft);font-size:14px;max-width:380px;line-height:1.6;margin:0 0 26px 0;}
 
-  .grid-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px;}
-  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 18px;box-shadow:var(--shadow);}
-  .stat-card .label{font-size:12px;color:var(--ink-soft);margin-bottom:8px;}
-  .stat-card .value{font-family:'Fraunces',serif;font-size:24px;font-weight:600;color:var(--primary-dark);}
-  .stat-card .value.accent{color:var(--accent);}
-  .stat-card .value.neg{color:var(--danger);}
-  .stat-card .sub{font-size:11.5px;color:var(--ink-soft);margin-top:5px;}
-
-  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:18px;}
-  .panel-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
-  .panel-head h3{font-size:15.5px;margin:0;}
-  .panel-body{padding:20px;}
-
-  table{width:100%;border-collapse:collapse;font-size:13.5px;}
-  thead th{text-align:left;font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.04em;font-weight:600;padding:9px 14px;border-bottom:1px solid var(--border);white-space:nowrap;}
-  tbody td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap;}
-  tbody tr:last-child td{border-bottom:none;}
-  tbody tr:hover{background:#FBF9F4;}
-  tbody tr.month-band td{background:var(--gold-soft);color:#7A5F2B;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.03em;padding:9px 14px;}
-  tbody tr.month-band:hover{background:var(--gold-soft);}
-  tbody tr.subtotal-row td{background:var(--primary-soft);color:var(--primary-dark);font-weight:700;border-bottom:2px solid var(--primary);}
-  .table-wrap{overflow-x:auto;}
-  .cell-strong{font-weight:600;color:var(--ink);}
-  .cell-soft{color:var(--ink-soft);font-size:12.5px;}
-  .row-actions{display:flex;gap:6px;}
-  .icon-btn{width:29px;height:29px;border-radius:7px;border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--ink-soft);transition:all .15s ease;}
-  .icon-btn:hover{background:var(--primary-soft);color:var(--primary-dark);border-color:var(--primary-soft);}
-  .icon-btn.del:hover{background:var(--danger-soft);color:var(--danger);border-color:var(--danger-soft);}
-  .icon-btn svg{width:14px;height:14px;}
-
-  .badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:600;white-space:nowrap;}
-  .badge.b-new{background:var(--gold-soft);color:#8A6B31;}
-  .badge.b-dp{background:var(--accent-soft);color:#9C5C48;}
-  .badge.b-full{background:#E4E9F3;color:#3E5589;}
-  .badge.b-done{background:var(--success-soft);color:var(--success);}
-  .badge.b-cancel{background:var(--danger-soft);color:var(--danger);}
-  .badge.b-active{background:var(--success-soft);color:var(--success);}
-  .badge.b-inactive{background:#EDEAE1;color:var(--ink-soft);}
-  .badge.b-paid{background:var(--success-soft);color:var(--success);}
-  .badge.b-unpaid{background:var(--gold-soft);color:#8A6B31;}
-
-  .empty-state{padding:50px 20px;text-align:center;color:var(--ink-soft);}
-  .empty-state svg{width:38px;height:38px;margin-bottom:12px;opacity:0.5;}
-  .empty-state .t{font-family:'Fraunces',serif;font-size:16px;color:var(--ink);margin-bottom:4px;}
-
-  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
-  .search-box{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;flex:1;min-width:180px;max-width:280px;}
-  .search-box svg{width:15px;height:15px;color:var(--ink-soft);flex-shrink:0;}
-  .search-box input{border:none;outline:none;background:transparent;font-size:13.5px;width:100%;color:var(--ink);}
-  select.filter{border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;background:var(--surface);color:var(--ink);}
-
-  .overlay{position:fixed;inset:0;background:rgba(42,42,36,0.32);display:flex;justify-content:flex-end;z-index:50;opacity:0;pointer-events:none;transition:opacity .18s ease;}
-  .overlay.open{opacity:1;pointer-events:auto;}
-  .drawer{width:460px;max-width:92vw;height:100%;background:var(--surface);box-shadow:-8px 0 28px rgba(0,0,0,0.12);display:flex;flex-direction:column;transform:translateX(16px);transition:transform .2s ease;}
-  .overlay.open .drawer{transform:translateX(0);}
-  .drawer-head{padding:22px 24px 16px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;}
-  .drawer-head h3{margin:0;font-size:18px;}
-  .drawer-body{padding:20px 24px;overflow-y:auto;flex:1;}
-  .drawer-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;align-items:center;}
-  .close-x{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);flex-shrink:0;}
-  .close-x:hover{background:var(--border);}
-
-  .field{margin-bottom:15px;}
-  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;}
-  .field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-size:13.5px;color:var(--ink);background:#FDFCFA;outline:none;transition:border-color .15s ease;}
-  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);background:#fff;}
-  .field textarea{resize:vertical;min-height:60px;}
-  .field-row{display:flex;gap:12px;}
-  .field-row .field{flex:1;}
-  .hint{font-size:11.5px;color:var(--ink-soft);margin-top:4px;}
-  .section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--accent);margin:22px 0 12px 0;padding-top:14px;border-top:1px solid var(--border);}
-  .section-title:first-child{margin-top:0;padding-top:0;border-top:none;}
-  .kas-preview{display:flex;justify-content:space-between;align-items:center;background:var(--primary-soft);border-radius:8px;padding:12px 14px;margin-top:4px;}
-  .kas-preview .lbl{font-size:12.5px;color:var(--ink-soft);}
-  .kas-preview .val{font-family:'Fraunces',serif;font-weight:700;font-size:17px;color:var(--primary-dark);}
-  .kas-preview .val.neg{color:var(--danger);}
-
-  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--primary-dark);color:#fff;padding:11px 20px;border-radius:8px;font-size:13px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s ease, transform .2s ease;z-index:100;}
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-
-  .invoice-wrap{display:flex;gap:22px;align-items:flex-start;}
-  .invoice-controls{width:280px;flex-shrink:0;}
-  .invoice-sheet{flex:1;background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;max-width:640px;}
-  .inv-header{background:var(--primary);color:#fff;padding:22px 30px;display:flex;justify-content:space-between;align-items:center;}
-  .inv-header .brandname{font-family:'Fraunces',serif;font-size:19px;letter-spacing:0.12em;font-weight:600;}
-  .inv-header .brand-logo-img{height:34px;width:auto;display:block;}
-  .inv-header .contact{text-align:right;font-size:11px;line-height:1.7;color:#EDE8DA;}
-  .inv-title-wrap{text-align:center;padding:22px 30px 6px 30px;}
-  .inv-title-wrap .t{font-family:'Fraunces',serif;font-size:24px;letter-spacing:0.35em;color:var(--primary-dark);font-weight:600;}
-  .inv-title-wrap .n{font-size:12px;color:var(--ink-soft);margin-top:4px;}
-  .inv-body{padding:8px 30px 26px 30px;}
-  .inv-to-date{display:flex;justify-content:space-between;align-items:flex-start;padding:14px 0 18px 0;}
-  .inv-to-date .lbl{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:6px;font-weight:700;}
-  .inv-to-date .client{font-family:'Fraunces',serif;font-size:16px;font-weight:600;margin-bottom:3px;}
-  .inv-to-date .phone{font-size:12.5px;color:var(--ink-soft);}
-  .inv-to-date .dateside{text-align:right;}
-  .inv-to-date .dateval{font-size:13.5px;margin-top:6px;}
-  .inv-table{width:100%;border-collapse:collapse;margin:6px 0 18px 0;}
-  .inv-table th{background:var(--primary);color:#fff;text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:0.03em;padding:9px 14px;}
-  .inv-table th:first-child{width:34px;}
-  .inv-table th:last-child, .inv-table td:last-child{text-align:right;white-space:nowrap;}
-  .inv-table td{padding:14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:top;}
-  .inv-pkg-name{font-family:'Fraunces',serif;font-weight:700;font-size:14.5px;margin-bottom:6px;}
-  .inv-pkg-items{margin:0;padding-left:16px;color:var(--ink-soft);font-size:12.5px;line-height:1.75;}
-  .inv-pay-wrap{display:flex;justify-content:space-between;gap:24px;padding-top:6px;}
-  .inv-pay-left{font-size:12.5px;}
-  .inv-pay-left .lbl{font-weight:700;color:var(--primary-dark);margin-bottom:6px;}
-  .inv-pay-left .bankline{color:var(--ink-soft);line-height:1.6;white-space:pre-line;}
-  .inv-pay-right{width:230px;font-size:13px;}
-  .inv-pay-right .row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);color:var(--ink-soft);}
-  .inv-pay-right .row.remaining{border:none;margin-top:8px;padding-top:10px;border-top:2px solid var(--primary);}
-  .inv-pay-right .row.remaining span:first-child{font-weight:700;color:var(--primary-dark);}
-  .inv-pay-right .row.remaining span:last-child{font-family:'Fraunces',serif;font-weight:700;font-size:16px;color:var(--primary-dark);}
-  .inv-event-band{background:var(--primary);color:#fff;text-align:center;padding:18px 20px;font-size:12.5px;line-height:2;}
-  .inv-event-band b{font-weight:600;}
-  .inv-terms{display:grid;grid-template-columns:1fr 1fr;gap:2px 20px;padding:14px 30px 20px 30px;font-size:10px;color:var(--ink-soft);font-style:italic;line-height:1.6;}
-
-  @media print{
-    .sidebar,.topbar,.invoice-controls,.toast{display:none !important;}
-    .content{padding:0;}
-    .invoice-sheet{box-shadow:none;border:none;max-width:100%;}
-    body{background:#fff;}
-  }
-
-  .hamburger{display:none;}
-  @media (max-width: 900px){
-    .grid-stats{grid-template-columns:repeat(2,1fr);}
-    .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .2s ease;}
-    .sidebar.open{transform:translateX(0);}
-    .sidebar-scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:55;}
-    .sidebar-scrim.open{display:block;}
-    .hamburger{display:flex;width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface);align-items:center;justify-content:center;margin-right:12px;flex-shrink:0;}
-    .topbar{padding:18px 18px 12px 18px;}
-    .topbar .titles h1{font-size:19px;}
-    .content{padding:0 18px 90px 18px;}
-    .invoice-wrap{flex-direction:column;}
-    .invoice-controls{width:100%;}
-    .invoice-sheet{padding:24px 20px;}
-  }
-  @media (max-width: 560px){
-    .grid-stats{grid-template-columns:1fr 1fr;}
-    .field-row{flex-direction:column;gap:0;}
-  }
+  .foot-brand{text-align:center;font-size:11px;color:var(--ink-soft);padding:16px;}
 </style>
 </head>
 <body>
 <div id="app"></div>
-<div class="toast" id="toast"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
-/* ============================================================
-   SETANGKAI PROJECT — SISTEM MANAJEMEN
-   Struktur data mengikuti pembukuan manual yang sudah berjalan:
-   Budget -> Foto/Video/FD/Cetak/Crew/Transport/Dll -> Kas
-   ============================================================ */
+const CLOUD_URL = "https://script.google.com/macros/s/AKfycbxQB4d609udJy6VCFjc87UtTtv8YeAvigYm0i5c_pj8nRVRunBqqOaUsPQZv7vt-i5p/exec";
 
-const ICONS = {
-  logo: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="20" fill="#F4EFE4" fill-opacity="0.12"/><path d="M20 10C20 10 14 15 14 21C14 24.3 16.7 27 20 27C23.3 27 26 24.3 26 21C26 15 20 10 20 10Z" stroke="#F4EFE4" stroke-width="1.6"/><path d="M20 27V32" stroke="#F4EFE4" stroke-width="1.6" stroke-linecap="round"/><path d="M20 22C20 22 17 20.5 17 18" stroke="#F4EFE4" stroke-width="1.2" stroke-linecap="round"/><path d="M20 22C20 22 23 20.5 23 18" stroke="#F4EFE4" stroke-width="1.2" stroke-linecap="round"/></svg>`,
-  dashboard: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="10" width="8" height="11" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/></svg>`,
-  calendar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>`,
-  team: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17.5" cy="8.5" r="2.4"/><path d="M15.5 14.2c2.7.3 4.7 2.6 4.7 5.3"/></svg>`,
-  assign: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h11"/></svg>`,
-  money: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 6v0M18 18v0"/></svg>`,
-  invoice: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3h10a1 1 0 0 1 1 1v16l-3-2-2 2-2-2-2 2-3-2V4a1 1 0 0 1 1-1Z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>`,
-  plus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>`,
-  edit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`,
-  trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>`,
-  search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>`,
-  close: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6 6 18M6 6l12 12"/></svg>`,
-  menu: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M3 12h18M3 18h18"/></svg>`,
-  empty: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19V6a2 2 0 0 1 2-2h9l5 5v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="M14 4v5h5"/></svg>`,
-  print: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9V3h12v6"/><rect x="6" y="13" width="12" height="8"/><path d="M4 9h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h2"/></svg>`,
-  box: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 8l-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>`,
-  download: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>`,
-  upload: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M5 3h14"/></svg>`,
-  settings: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>`,
-};
+let screen = 'welcome'; // welcome | form | success
+let packages = [];
+let packagesLoaded = false;
+let map, marker;
+let picked = null; // {lat, lng}
+let submitting = false;
+let submitError = '';
 
-const ROLES = ["Fotografer","Videografer","Editor","Asisten","MUA","Lainnya"];
-const STATUS_LIST = ["Booking Baru","DP Diterima","Pelunasan","Selesai","Batal"];
-const STATUS_BADGE = {"Booking Baru":"b-new","DP Diterima":"b-dp","Pelunasan":"b-full","Selesai":"b-done","Batal":"b-cancel"};
-const COST_FIELDS = [
-  {key:"biayaFoto", label:"Biaya Foto"},
-  {key:"biayaVideo", label:"Biaya Video"},
-  {key:"biayaFD", label:"Biaya FD (Flashdisk)"},
-  {key:"biayaCetak", label:"Biaya Cetak"},
-  {key:"biayaCrew", label:"Biaya Crew Tambahan"},
-  {key:"biayaTransport", label:"Biaya Transport"},
-  {key:"biayaLain", label:"Biaya Lain-lain"},
-];
-
-const LOGO_DATA_URI = "data:image/png;base64,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vLDwG/eE8/s3BCkeAAAACXBIWXMAAC4jAAAuIwF4pT92AAADY2lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4NCjx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iPjxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+PHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9InV1aWQ6ZmFmNWJkZDUtYmEzZC0xMWRhLWFkMzEtZDMzZDc1MTgyZjFiIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iPjxkYzpjcmVhdG9yPjxyZGY6U2VxIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+PHJkZjpsaT5EaXQ8L3JkZjpsaT48L3JkZjpTZXE+DQoJCQk8L2RjOmNyZWF0b3I+PC9yZGY6RGVzY3JpcHRpb24+PHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9InV1aWQ6ZmFmNWJkZDUtYmEzZC0xMWRhLWFkMzEtZDMzZDc1MTgyZjFiIiB4bWxuczpleGlmPSJodHRwOi8vbnMuYWRvYmUuY29tL2V4aWYvMS4wLyI+PGV4aWY6RGF0ZVRpbWVPcmlnaW5hbD4yMDI1LTA2LTA1VDEwOjAxOjU3LjM5MTwvZXhpZjpEYXRlVGltZU9yaWdpbmFsPjwvcmRmOkRlc2NyaXB0aW9uPjxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSJ1dWlkOmZhZjViZGQ1LWJhM2QtMTFkYS1hZDMxLWQzM2Q3NTE4MmYxYiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIj48eG1wOkNyZWF0ZURhdGU+MjAyNS0wNi0wNVQxMDowMTo1Ny4zOTE8L3htcDpDcmVhdGVEYXRlPjwvcmRmOkRlc2NyaXB0aW9uPjwvcmRmOlJERj48L3g6eG1wbWV0YT4NCjw/eHBhY2tldCBlbmQ9J3cnPz6M6grLAAAAIXRFWHRDcmVhdGlvbiBUaW1lADIwMjU6MDY6MDUgMTA6MDE6NTfOj+UXAACFpklEQVR4Xu3debzUVf0/8Nf7fD4zc3fgsokgLpAKlQrZ4gapqZVpCpialtle2rd9RwnU9vq1W7Zrq4FLbrkLmlYWLikugYqCgMAFLnebmc/nnN8fDEXv5M58PjN37mdmXs/H4z7K1xkVL9zPct7nvI8450BERERERERERERERETJYnRAREREREREREREREREw49FHCIiIiIiIiIiIiIiogRiEYeIiIiIiIiIiIiIiCiBWMQhIiIiIiIiIiIiIiJKIBZxiIiIiIiIiIiIiIiIEohFHCIiIiIiIiIiIiIiogRiEYeIiIiIiIiIiIiIiCiBWMQhIiIiIiIiIiIiIiJKIBZxiIiIiIiIiIiIiIiIEohFHCIiIiIiIiIiIiIiogRiEYeIiIiIiIiIiIiIiCiBWMQhIiIiIiIiIiIiIiJKIBZxiIiIiIiIiIiIiIiIEohFHCIiIiIiohqzePFiT2dERERERFR/xDmnMyIiIiIiIkqwMAxP9DzvBp0TEREREVF94U4cIiIiIiKiGiMi+4RheLLOiYiIiIiovrCIQ0REREREVGOccyuNMT/o6urq0GNERERERFQ/WMQhIiIiIiKqPVkAE0eNGrVADxARERERUf1gEYeIiIiIiKj2jC7874dyudz+aoyIiIiIiOoEizhEREREREQ1RkReVvi/qVQq9WU1TEREREREdYJFHCIiIiIiohojIsfs8penBkFw5C5/TUREREREdUKcczojIiIiIiKihOrv75/Y1NS0GoC3S3yfiBy+y18TEREREVEd4E4cIiIiIiKiGtLU1PReVcABgMPCMDxBZUREREREVOO4E4eIiIiIiKhG9PT0jGltbf0XgJF6DMBfROQwHRIRERERUe3iThwiIiIiIqIa0draumA3BRwAeE0YhsfrkIiIiIiIahd34hAREREREdWAIAiO9DxvaZHFeLeICNuqERERERHVicEe/omIiIiIiCgBtm3bNtLzvF+W8A53XC6X21+HRERERERUm4q9ABAREREREdEwMsZIR0fHzwHsp8dehKRSqffokIiIiIiIahOLOERERERERAkWhuFXAJyi80G8dfHixZ4OiYiIiIio9vBMHCIiIiIiooSy1n5URL6p82LCMJzt+/4ynRMRERERUW3hThwiIiIiIqIEsta+R0S+ofNSeJ73Jp0REREREVHtYRGHiIiIiIgoYay17xeRHwIQPVai43VARERERES1h0UcIiIiIiKiBLHWfl5EflDm+9pBPT09Y3VIRERERES1pZyXAiIiIiIiIqqQ5cuXp5xzPxWRi8vYgbOTNDc3H6lDIiIiIiKqLSziEBERERERDbPu7u7OGTNm3AzgnXosLmPMYTojIiIiIqLawiIOERERERHRMMpms1Pb29vvBXC0HivTDB0QEREREVFtYRGHiIiIiIhomARBcHg6nf4LgAP0WAW8TAdERERERFRbWMQhIiIiIiIaBmEYnuJ53m0ARuuxCtlj3bp1LTokIiIiIqLawSIOERERERFRlVlr32mMWQygWY9V0ujRoyfqjIiIiIiIageLOERERERERFVkrf2AiPwEgKfHKs0YM0pnRERERERUO1jEISIiIiIiqhJr7f+JyPcBiB4bCiLSqjMiIiIiIqodLOIQERERERFVgbX2nSLyrWoVcAqq+e8iIiIiIqIKYxGHiIiIiIhoiFlrTxORy6pdVHHO5XRGRERERES1g0UcIiIiIiKiIRQEwWwRuaIaZ+BozrmtOiMiIiIiotrBIg4REREREdEQGRgY2NvzvMUAMnqsGrLZ7HqdERERERFR7WARh4iIiIiIaAgsX748lclkfg9gjB6rkq1tbW2bdEhERERERLWDRRwiIiIiIqIhMGPGjC8AeLXOI+jTQUT/1AEREREREdUWFnGIiIiIiIgqLAiCwwB8WucROADX6TCie3VARERERES1hUUcIiIiIiKiClq5cmXG87xfAPD0WAR3lLsTx1p7u86IiIiIiKi2sIhDRERERERUQfvtt99HAOyv8yistd8C8HKdR7DpoYceukuHRERERERUW8Q5pzMiIiIiIiKKoaurq2PUqFFPA+jUYxE81t3dfXhHR8cLAFJ6sETfF5HzdUhERERERLWFO3GIiIiIiIgqZOTIke8ps4AD59xX2tvbTyijgGPz+fz3dEhERERERLWHRRwiIiIiIqIKEZF36yyilXffffevReTteiCCa9Pp9OM6JCIiIiKi2sN2akRERERERBWQz+cP8n3/IZ1H4Zw7MwiC5alU6rGYi+7y+Xz+5el0+gk9QEREREREtSfOSwEREREREREpnuedorOI/ur7/u9TqdT8Mt7VvsMCDhERERFR/eBOHCIiIiIiogpwzv0JwAk6L5ENw/DVzjnr+/79MYs4j69du3bmpEmT+vUAERERERHVpjgvBkRERERERPS/puoggu/8+c9/ftD3/R/FfE/rDYLgDBZwiIiIiIjqC3fiEBERERERVYBzrgvAKJ2X4LG1a9e+Ys899/y4iFykB0tgrbVv8TxviR4gIiIiIqLaxiIOERERERFRBTjntgIYofMi+oMgeI2ItHmedxeAlP5AEc45915jzE/0ABERERER1b442/SJiIiIiIjof23RQTHOuffmcrkNnuddGaOAEzrn3sMCDhERERFR/WIRh4iIiIiIqDKe1MFgnHMLnnvuucUtLS1LAEzU40X0WGvnGGN+qgeIiIiIiKh+sIhDRERERERUAc65pTobxI8uuuiiiydPnvxzAEfowSKeCYLgCM/z/qgHiIiIiIiovvBMHCIiIiIiogrIZrNT0un0kyUslrtiyZIl586dO/drAD6qB4u4s7e39y1tbW2b9AAREREREdWfYi8XREREREREVIJMJrMKwBKdK1csWbLk3Dlz5nw+YgHHAfjGAw88cAILOEREREREjYM7cYiIiIiIiCokm83um06nHwTQoccA/GrJkiXvmDNnzsdE5Kt6cBBd1tp3ep53rR4gIiIiIqL6xp04REREREREFZLJZJ621p4NIFBDlxcKOB+KWMC5tr+//2Us4BARERERNSbuxCEiIiIiIqowa+0ZIvJLAGkAf1iyZMmZc+bMeZ+IfA+A6M+/iDXOuY8bY67UA0RERERE1DhYxCEiIiIiIhoCQRAc5nne2x977LEPH3jggWeLyE9KKOCsd859/fnnn//BpEmT+vUgERERERE1FhZxiIiIiIiIhlAYhnMKO2o8PVbQB+AO59xvn3rqqSVTp07N6g8QEREREVFjYhGHiIiIiIhoiIRheJwx5joAmV3iTc65zzjntllrV/7zn/98dObMmfldxomIiIiIiAAWcYiIiIiIiIZGPp8/2Pf9ewC07Zpba0/zPG/xrhkREREREdGLMTogIiIiIiKi8nR1dXX4vr9EF3AAXMsCDhERERERlYpFHCIiIiIiogobNWrURQCm6Nxa+y2dERERERER7Q6LOERERERERBXU398/EcAHdQ4g+8QTT9yrQyIiIiIiot1hEYeIiIiIiKiCMpnM6wD4Ogewevr06TkdEhERERER7Y4453RGREREREREMeVyuQM9z3sJgF4AFgCcc85a+0I6nX5Mf56IiIiIiGh3WMQhIiIiIiIiIiIiIiJKILZTIyIiIiIiIiIiIiIiSiAWcYiIiIiIiIiIiIiIiBKoodupLV261D/ssMOmep43TUSmiMhkAOMBdALoANAKIAVAAOQBBAB6AHQVvtY459Y651bmcrkVra2ta621jfsNJSIiqlEbNmxo7ezsnGKMmVp4JtgDwJjC1wgAGQBNhf91AHKFr24AWwG84Jx7DsAz1trHt23b9sTo0aO3638PERERUa3YuHFj26hRow40xhwAYN/CnMnYwpzJiMJ8iV+YK8kBGACwCcB6AOudc6uttSt6e3tXjBgxYqv+5xMRVYoxRvr6+vZKpVL7i8j+IrIXgD0KXyML73JNhTne/sL1Kgtgwy7zu0+HYbjiS1/60r8WLFhg9b+DaDg1VBFn5cqVmX333fcoY8yxAI4CMANAi/5cGbYA+Ktz7l5r7a3XXHPN/fPmzQv1h+qBMUb6+/un6JyA3t7eFzo7O7t1Xklr1qxpHjt27ESd06BcJpNZpcMkGhgY2FtEUjovprm5eVWjFZLjXou6urqenzBhQp/Oa1Fvb+843/c7dL47YRj2tLS0rNd5I1m4cKH53Oc+d4jnebNF5FAAMwHsX+Edyg7AKgB/c879OQiC29Lp9JP6Q/Umzv0pDMPelpaWdTqvJdlsdr9y//wMDAxsqqcJrmw2uy8AT+dF2Ewm85QOKdlWrFiRnjJlymSdJ4B1zgXOuTAMw2x/f//AihUrBmbPnh3oD9arxYsXeyeddNK+Ok+wnb9nQRiG+e3bt/dOnDixv9Geb4dTf3//nplM5ngRmQ3gNQAOKEx4VsJTAO51zt0XBMGt6XT6X/oDVB1bt24d0dzcPFbng8nlclva29s367zaenp6xqZSqRE6b3TOuVxTU9OzOq9nS5cu9Y844ojDPM87FsCrC1+j9Odi2l54j7vLWntbrc/vxnlHo+S9l9R9EWfp0qX+kUce+UZjzJkATirsrqmWLgDXWWt/d88999xWTy8My5cvT82YMSOncwKcc+8yxvxM55UUhuFrjTF36pwG1Sci1fz5j6Wvr2+P5ubm5wor2iIJw3CW7/t367yerV69umny5Mn9Oi/B5SJyjg5rkXPuMgDv0fkgrhaROTqsdxs2bGgdO3bsSSJyCoBjCztsqm0VgCVhGF7p+/4/9GA9CIJglud5S3VexI0icqIOa4W19kIRWajziB7u6ek5JgmTI5WQy+Vekkqlnogz8RcEwcGpVOphndejzZs3t7e1tY3JZDJP67FaksvlpqVSqRU6T7CBwg7KbQA2A9gI4Dnn3Grn3KowDB/94x//uKqWJ2t26u3tHdfS0rJB5zXGFrphbCp8vQDgWefcs865f4Vh+Ei9/H4Nl1wud4Dv+6eLyFwAB+nxIfQ4gOuCIPhdKpVargdp6FhrzxOR7+m8iK+IyGd0WG3Oue8BOE/nhH+KSDV/fofFihUr0gcccMAbjTFvAXBCYVdgNWwAsDgMw8t93/+bHky6MAyPNcbcpnMa1HYRKXmxbDWUtWIwyXp6esZYa+fPmjVrtTHmWgBnVLmAg8LF5BxjzE2zZs161jm3sL+/f0/9ISKinZqamt4ap4ADAJ7nvVNntFtvC8PwdTqk+mKMkTAMj3HO/XbcuHEbROS3AE4fpgIOAEwB8CnP8/7unHvIWnv+hg0bqv1sQhVkrf1oBQo4j/b29r6uXgo4AJBKpc6OU8ABAN/36/5els1m93XOXdrZ2bk2nU4/kM/nX6Y/Q0OqqdBa5QAAhwN4M4DzReRrxpirUqnUE3Pnzu12zt3tnLskCIIjFy5cWLfvzTXAFFqd7wfgVQDeBOCDIvJlY8ySwu/XFufczdba+fl8fqYxJtb1p5GsXLkyY619m3NuaSqVeqxwL6v2BPCBAD7p+/4/nHPLrbXnbd68uV1/iIgol8sd6Jz77rRp0543xlwN4MwqFnBQOHrjPM/z/lp4j3vXypUrM/pDREOp7h5GN27c2OacW9Ta2vqUiFwEIClFkwkALmxqanrKOffd/v5+bmMjov8hIm/TWQSndXV1JWqlQIKJMebSNWvWNOsBqn2FiYn3hWH4T2PM7cO0kKOYg0Tku+PGjXvGWnsBJy1qj7X23SLyDZ1H9Hh/f//r2traNuqBWlWYPD1b5xGcXa8vxdlsdh/n3I/T6fQTAN4PoB3ACN/3f7V06dJYCzhoyLQAOBLA5zzPu/vCCy9c7Zz7aqF1IiVPO4DjReQi3/f/EYbhU9baC/v6+iboDza6jRs3tllrPzllypRVInI5gFlxi+4VNkNEvtfZ2bnaOXdRb2/vOP0BImo8QRDMds5dl0qlHgVwPoDR+jPD4CAR+cmUKVOestaev3z58sit8IniqKsijrX2LWPGjHkCwAWFB7kkygA4v6mp6Qlr7fzVq1c36Q8QUWPK5/MvB3CIziNoHTly5Ok6pN2aOnHixAt0SLVr+fLlKWvte6dMmfKkiPwQwEv1ZxJojIgs6uzsXGWtPX/x4sVRzxChYWCtPVNEflTmxNe/BgYGjq23M6pyudwRhRXzcY3eb7/93qzDWrZ9+/bRzrlvpNPpxwG8u3AQ+K4OPuqoo+qixWcdmwTgk+l0+knn3JW5XG6a/gAlyj4isrC5uXmVc+7/dXd3V+qMhJpVeEb60JgxY1aKyFcBJHVR6SgA81taWp5yzi3kIheixpTP52c6527yPO+uwg7MJM5f7yki350xY8YjYRi+QQ8SVVoSfwgi6+7uHuWcWywiv0/QzptiWkXkosmTJ/8jCIJX6kEiajy+75ezCwfYsZPnXTqjQX2iUDyjGheG4TEzZsx4uDCxnsQDtosZKyLfnTt37v35fH6mHqTkCMPwJBH5ZZnP0U9ns9ljm5ubn9cDtc7zPN7LCpYuXepbaz/S1ta2EsDHCou5XpSIXMDdODXBA3BaKpV62Dn3fU4wJ14zgI+0t7c/Ya1t2IVOYRgeO2PGjAdF5DuFlkC1oBXAhZ2dnSutte9hizyixtDT0zPGOfdz3/f/DuD1ejyh9jfG3Oic+21PT89YPUhUKeW8fCZCPp8/pL29fTmAuXqsRkz3PO9ea+0n+GBC1LgKq+/fqvMYXp3P52th90FSpHzfv4y97mtXYYX7rwpt0w7U4zVohu/7f7HWzueunOQJw/B1xpgrX2QnRRSrs9ns0U1NTc/pgVpX2GF+ms5jeN3AwEAtFmP/bcWKFelZs2b9RUT+H4CRevxF7H3UUUfV6vtMI/IBfLCzs/OfQRDM0oOUOGNF5HfOuZ/Va7vGF7N58+Z259yPjDG3Apiux2vEOBG5LAzD27PZ7FQ9SET1w1r79tbW1scAvKPM3e7D5YzW1taHePYuDZWanrQKw/BNvu//GcA+eqzG+CLytTAMf9NID5VE9B+nnnrqMZVqa+D7fl2sYK6i11xwwQUf0CElXxiGR7e1tT0E4Cw9VuNSInLR3Llzb9y+fXsS+j7Tjp7chxcOUi2nFe6aXC53bFNT02o9UA8mTZr0pkIrnHKZdDp9rg5ryd577z0SwCt0PhgRea/OKPH29jzvNmvt/+kBSqRzp0yZckcj3FuDIHhVZ2fnQwDeW6OTodrR6XT6IWvtu/UAEdW2rVu3jnDO/a6w032MHq8xE4wxf7LWfp4L9anSaraIY619S+FFukWP1bAzpkyZciO35RM1HmNM2e1ndvG2FStWpHVIuyciX+zv769IEY2GnjFGnHMLjTG3Var4mVDHt7W1/YUrT4dfPp+f6XneDQDa9FgEz+fz+WMymcwqPVAvKnkvE5Fza3mXZGtr6wsA/qXzIl7b398/SYeUeCkR+bZz7hucsKkJh7e1td1Rzy1vrLX/53ne3QD21WM1rkVEfuycu2Ljxo3l3I+JKCHy+fwhI0aMeABAPbW89ETk4jAMf7F8+fJydu8T/ZeafDEKw/AUEfl1YRt7vTmms7Pz2jVr1jTrASKqT4WXkFN1XoYxBxxwwMk6pEF1NDU1fVeHlDyrV69uCsPwNwAurNXnmIimptPpP+fz+YP0AFVHLpeb7vv+zSW2xNqd9fl8/th0Oh11Ur9m9PT0jAFQyUNd954/f/6xOqwxv9dBESaTyVSitSoNj4+FYfgtHVIiHdTa2nrDhg0bWvVALVuxYkXaOfcTEfk2gHpe0HX2mDFjlvX19U3QA0RUOwrdleqx4LzT22fMmHFVod0wUdlqbvIjCIJXGWN+U6cFnJ2Onjhx4m9refUhEZVu9OjRp5a5uvt/GGPYUi26U8MwrGQxjSps69atIyZPnnwbgDP02BDqA/AMgEcALAfwt8L/PgrgeQCB/huGwDjf92/jeVfVl81m90ulUreU2dphYxAEx6XT6cf1QD1paWk5o8yzgv6HMeadOqslQRAs0VkxInKmzqim/J+19nM6pER65bhx435ZL7unNm7c2DZt2rTrAVTjHcAB2ATgSfVs9DiAdQBC/TcMgRnNzc335XK5aXqAiJLPWvteY8w1lZ4H2Y2thd3RDwP4e+HrkcI7XlZ/uMLeNHny5D9wRw5VQk0VCXp6esZ6nnc1gErvUhko/BD/yjm3wDn3Aefc6dba48MwnB2G4WvCMDzMWnu0tfZE59y5zrnPAfgJgHsAbNP/wAp484UXXnixDomo/ohIqe1nojxgHDcwMLCXDmlwxpjvdnV1deicht/WrVtHjBgx4mYAR+ixClkP4I/OuQustXODIDh406ZN7SLSKiL7isjLReQVIvLqwv++TEQmLlmypGlgYGCStfZo59yHAFwB4Gn9D6+Asb7v/4mtlqqnv79/UjqdLrdl3+YgCI5LpVKP6IF6M0T3slO7u7s7dVgrMpnMQwDW6ryIg/lzXtsKLVRO0jkl0twgCGr+PKPu7u7OMWPG3A7gOD1WAb0AbgawyFo7N5/PH7Bq1apmERkrIgeoZ6NpIrLnkiVLMtlsdp/C3MnnAfwJQI/+B1fA3qlU6m7uViaqLdbaD4rIDwF4eqxMPQBuA3CxtXZeEAQvX7t2bYuIjBKR/UXkYBF5ZeHr5SKyr+d5zX19fXtYa49zzn0SwPVDcL1604wZM35aL4sGaPiIc05nieWc+yOASjwQWwB/ds5db629/eGHH3545syZef2hUi1evNh785vffLDneceIyFwAr67Q4YHOWvsGz/Nu1gPDbfny5akZM2bkdF6EG6KCV6I45z5kjPmVzispCIIjPc+7TudV5AGIenZTMAQ3wyj6RWRPHQ63/v7+iYUDrkt5gPlJYXVdSdcX59yFxpiLdF5PVq9e3TR58uR+nZfp+yJyvg6Tyjl3GYD36HwQV4vIHB0mWVdXV8eoUaNuA/BKPVam5c65K8MwvDmTyTxkra3YQ1Eul3uJ7/unichbAVRyB81D69evP3zChAl9eiAJgiCY5XneUp0XcaOInKjD4dTb2zuupaVlKYAD9VgEW8MwfJ3v+//QA/Uml8sdmEqlHtP5bvw4yjXLOfdhY8x3dF4rnHM/B/AOnQ/GOfc+Y8xlOk+qXC43LZVKrdB5ESGA7TocAn6hrZRf5QWMXdls9pCmpqbn9EA1Fa5lG3RexPNhGM7VYZVI4YyhNIA2Edmj8Pz+EgDTC/fTUp6ZoxjI5/MzanW3ZHd396j29vZbAByqx8qwDcAfrLV/ePrpp5dOnTo1SvH9Ra1cuTKz7777HmeMmQvgNACVbGW3MQiCYxphwUSlWGvPE5Hv6byIr4jIZ3RYbc657wE4T+dF9AGIOn9Va1aIyFAtdqsYa+0HROT7pc5plGArgCuttUsqdb1asWJF+oADDnh9obvJiZW67zjnvmCMWajzagiCYLbnedfovIr8GLuuhnsOsUdEErUwumaKONbaM0XkNzqPqBvApblc7rJMJvOUHqyUbDY7JZ1On1+YbI060a09393d/dIRI0Zs1QPDKWYRZ4uI1OxqSvqPIAgO9Tzvfp0XcZeIHK3DRmet/aSIfFXnL8Zae6ox5kIAM/TYbjzled7USk5MJ80QFXFsGIZH+L7/Fz2QRPVexCncb64HcLwei6kHwM/y+fwP0+l0qZPOZQmC4HDP8z4MYG6FXgJ+LiKJbDNVD0WcwoTYHQAO0WMRbAvD8Hjf9/+mB+qRc+5iAJ/X+Yux1h5jjPkJgP302G48JCLl/F4MK2vtOSLyC50XcaWI1MwBvzGLOPeLyKt0OJQWLlxo3v/+9zePGDFitOd5Y4wxY0RkvIhMLRQIXlHhvvzDfm2LWcR5SkSm6DAJNm/e3D5y5MgjjDFvBjAHwDj9mZju8TxvVq09M2/cuLFtzJgxd1Rwkcu/nHNf37hx46/Hjx/fqwcrZevWrSM6OjreLiKfADBZj8e0IZfLHZbJZIZiN3TdabQijnPuHGPM5Tqn6grD8M3GmCUVeh/6p3Pu688999yVe++994AerJRcLveSVCr1OQBvq8Cv21prT/I870Y9UO+CIHi153lR51duF5HX6bCRVXM1Umzr1q1rKXWSczdCAN/cvn37viLymaEs4GBH64RVIvLRvr6+lxRWzlv9mQj27OjoWKRDIqoPEdrPIJfL/Q3ATTofxH75fP4YHVJRxvO8y9i3NhlmzJjxgwoVcHoALOru7t5LRD5crQIOAPi+f6+InJ7P518O4Go9HsO5YRjWTCGulmzcuLGtvb39hjILONvDMHxDoxRwCmc4nq3z3Qi3bdv2j4j3soODIKjkCvOqyufzUYuaAPAaHVD5FixYYMePH9/b1NT0bCqVWu553i3GmCtEZIGInCYi++VyuSnOuQsKLTbL9cYwDOfpkOIbPXr0ds/z/iQiH3jsscf2cs6dUzijrlxHBkFQU79Xy5cvT40ZM+YPFSrgrHbOvWPJkiXTjDGXDWUBBwBGjhy5zRjz3ccee+wlzrkPAnhBfyaG8el0+vpt27aN1ANENPyCIDjUGPPrChRCVllrT/M872BjzOVDWcABgHQ6/S8ROTcIglcB+Ksej8gYY37R19c3QQ8QlaImijjjx4//AIC4vaGfCcPwCBH5eEdHR5ceHEqtra0bROQ91toTynwR+EAulyunnQcRJVA+nz8EwMt1vhvPNjc3Px+G4Q16YDC1fij0MHr5IYcc8gkdUnVZa88H8G6dx/Crvr6+qSKyYDh3tqbT6cdEZI619ngAq/V4FMaY73V3d4/SOcW3evXqpjFjxlwL4DA9FkFvGIYn+r5/nx6oV5///OePArC3zndjRWdnZ7e1NtK9zPO8mr2XZTKZZwoHfUcxub+/v5yzmCimTCbzlDHm4vXr108B8MVyD2g3xlyydOlSX+dUvunTp+eMMZcvW7bsEOfc+eW2XBGRRYWidE2YMWPGtwG8XucRBQC+vH79+unGmF/OmzevrD/vURV+Dy/dtm3b/gC+Ve7PG4DpHR0dVy5evLjcSWIiqqCenp4xnuddVWYbxTyARY899th0z/MWV3vnZCqVWr5kyZIjAFxc5kL9sc3NzT/WIVEpEv+Qsnz58pSIfFTnJfpzb2/vK33fL7daWhbP824bGBg4FMA/9ViJ/FQqdYEOiai2+b5f8i4cAPcBwDXXXPNXABv14CDmcKI3HhG5IJvNTtU5VUcQBIeKyNd1HtF6a+3rReRtra2tUdvJDBnP827dsmXLQQD+oMcimNDe3s5ngwpZvnx5avLkyX8AUM7uxT5r7Um+79+tB+qZ53mR72Vr1qy5M+KE65lr1qxp1mENido+Aul0umZ3H9WDCRMm9InI5wtF9y16PIL9jzrqqLN0SJUze/bswBjz/Xw+/0oA5eyyPXD+/Pmn6DCJrLXvBPABnUf0ZBiGh4vIZ4f7nL2RI0duE5GPhmF4FIAn9XhEx82dO5fPR0QJsXDhQtPa2vpLAOWcLfJ0GIaHiciC6dOnRz3WoWLmzZsXisgF1tpTCucsxXWitfZMHRIVk/gizsEHH3wygDgr0e7dtGnT69va2jbpgeHQ3Ny8tru7exaAB/RYiU7PZrOV7NFMRMOosCrzrTrfHefc3Sg8OAC4Xo8Poqmtra3kfw/9l+Z0On2pMaZShy5Sibq6ujo8z/s9gIwei+Cu/v7+GZ7n3awHkqCzs7Pb87zTASwEEHcl2XnZbDaR5xbUksWLF3szZsy4AsCb9FgEA9baUz3Pu1MP1LNCYaXkFkQ772WF1he36PFBjNxzzz2H66D1sjnnop4jCBEpdacuDSHP8+4IguBoALE7OojI/+mMKi+dTj/e29s7C8ByPVYqY0y5hZEhl8vlpsc4y0S7ZsuWLa/0fT/ytWko+b5/X1dX16FlLnIBgPlhGPIsVqIEuOCCCz4K4I06j+DOnp6eV/q+/w89MFw8z7suDMPjCueuxyIi39i8eXO5Z6hTg0l8EccYU2qP7V2t6evrO3Xs2LFRVvgNuREjRmwdGBh4E4A1eqwEXjqdfq8Oiag2HXnkka8DsIfOdycMw3+v7LbWXvvfo4MTkXfpjEr2uiAIoqwypwoYNWrUVyIcev5ifv3YY4+d0NLSUk4r0yFnrXUi8gXn3IdiFnLS6XS6pMPk6cUZY2Tu3Lk/AlDOIfJZa+0cz/OiFCXqwp577nkygBE6351cLvfve5lzrmHuZc65B3VWDIs4yZFKpR4qnEOW12MlmhkEwat1SJXX1ta2qa+v7w0AntFjJTpmYGCg1PaQVbdixYp0KpX6NYBydiZ+fdGiRXM7OztjTz4OpcK5R6c75y6M+WwEAJ4x5vKtW7eWfH8iosrL5XIvEZGLdB7BNatWrXpDe3v7Zj0w3Hzfv9da+2YAcc/kmdDZ2flJHRINJtFFnMLqvhN0Xoy19r2tra2VOByv4pqbm5+31p4T84HknFrq00tEu2eMiVIY2PTFL37xkZ1/sW7dulsARDlwdEY+n5+hQyqNiHyjp6dnjM5paIRh+FoA79N5BD/wPO9tw7nVPipjzPedc/N1XqKzs9nsPjqk0oRh+C0A5RQH8tbat3ied5MeaAQi8nadDeLppqamf58F1dPTc33ESfHZtbrzLJvNRi7iAJiuAxo+vu8vdc7FLpp7nneGzmhotLa2vhCG4WmF816iMul0+s06TIoDDzzwswAO0XmpnHOfFZFPLliwoJzzHIactdYZYy5yzr2njLMnJo0YMeLLOiSi6jDGSCqV+nEZRefrly1bdtrUqVOzeiApPM+7yzl3rs4j+GhPT89YHRLtTqILAhMmTDgyxg/8TUl/kfY87w4Al+m8BBM+//nPH6lDIqothW2zUXpu37nry9akSZP6AUS6zvm+X84kZaMb09ra+g0dUuWtXLkyY4z5MYC4Lex+7nne+dU+6LISjDFfBPA7nZcglU6nz9MhFeecuwhAOW2OAmvtGZ7n/VEPNILe3t7xAI7X+SBu3/UvOjo6ugDctWtWhKTT6XfqsBa0tLSsi9GOi22UE+aqq676JoC4Z63OZXvW6vF9/+8AvqPzUohIOa01h0wulztARD6r81I55z5njKmpooYx5qeFQk7c57r3BUEwS4dENPQK3Sxm67xEf1m/fv3ps2fPjlOMrypjzO/i3m8AtLW2tn5ch0S7k+gijogcrrNirLXf1FkS9ff3fyHiSnpgRwHoJJ0RUW0ZNWrUPAAtOt8d59x/TXwVsiU6K+Ktq1evbtIhlextYRi+TodUWfvtt9+HAUzVeYluXbZs2XtrsYCzU1dX13sB/HunQgTn8uc7GmvtpwDE3f0EAIFz7izP867SA42iubn5TAC+zndnN/eyqN+/cxYvXuzpsEZEPXC9tbe3d5wOafjMmzcvDMPwIzov0V4DAwP765CGTm9v75fjvG8DOKxwdmWipFKpb5VxVuD/M8Z8SYe1wBjzM+fcZ3ReIvE87zs1fN8gqknr1q1rEZFLdF6idf39/XMmTJjQpweSatWqVZ8C8KjOS/T+rq6uDh0SvZikF3EO1lkRG6+++uqaOFC20Kf/xzovwTE6IKLaIiJRWqkhn8//z8HsW7ZsuQFAv84HMWqvvfaao0MqmRhjflho80lDoLe3d7yIxG1Vs3L79u01sVprMKNHj95urf2gzksweq+99jpVh/TirLUfFJGv6DyC0Dl3rjHmSj3QSCLey8Le3t5bddjf3381gFDng5h46qmnvl6HNeJxHRSTyWQSezZHo/J9/y8AbtN5KXzf546AKmpra9sI4Lc6L0Hb4YcfnqgzqQoLieJe+25YsmRJTZ+7YIz5KoBf6rxEB8+ZM+ccHRLR0Bk/fvwnAEzSeQlsGIZnFnYw14ypU6dmwzB8Z8Rn2p1GjBw5siZ3mlP1JbqIAyDqaqW75s2bF+eHZljk8/kfxdgafMjGjRvbdEhEtWFgYGByxG3Fj2cymf85nHX06NHbAfxPcWcwIsKHgx1+HbO/9pSJEydeqEOqjJaWlgUA4qxCyodh+NaOjo4teqAWeZ53Y9Sfbez4+T5LZ/S/rLVvE5Hv6jwC65x7tzHmV3qgkeTz+ZcCmKnzQfz9xQ6lbW1t3QBgmc4HY4ypyXuZc+4pnRUjItyJk0DW2kt1VgoROVRnNLSstXGKOPA876U6G05ltEF7dvv27W+vpTmS3Vm/fv0HY+xoBHb87F20bt26krsgEFF8W7duHSEiH9N5ib7t+/5SHdYC3/f/BuDnOi+FiLyfLVepFEkv4uylg8E45+JuXxsW6XT6cQD367wIM2rUqIN0SES1IZ1OnxXx2nuDDnZyzkVdBX5MNpvdT4eNxjn3FwCxJmAAfDyfz/MaXGH9/f0TAcSamHXOLfR9P+q9NNHCMLxAZyU4fvv27aN1SP8RhuFcEflZxGvwrpxz7gPGmF/ogUbj+36UXThwzt2os51i3MtOqtE2Y0/roBgRGaMzGn5PP/30DQC267wEiSoMNII1a9bcC2BA58WIyAE6Gy5hGL4ewCt0XgJnrT23cP5YzZswYUJfEARnAsjrsRLsOX78+PfokIgqr6Oj4zwAI3RegqfXrl0btytDIvT3918IoEfnJTggl8sdpkMiLe5L7JBbsWJFOsaK3Bd0kHTOuet0VowxJlHbu4modBHbz8Bae73Odtq8efN1AKL0ipV0Ov0OHTaiLVu2fA7AWp2XIOX7/mULFy5M7P2zFjU1NX08Zp/3Rx588MGv6rDWFYpSUdv1pFpbW9+oQ9ohDMMTjDG/iXKGi+Kcc+cbYy7TA42mcP2LtPMrDMPdPu/29fUtARClFWKqubk50r00Cay1z+msBCziJNDUqVOzAO7SeQkSUxhoFHvvvfcAgId1XoI9dTBcjDFxz4P5ied5d+iwlqVSqYcAxDoDWUQ+tnz58pTOiahyCmfhfFjnpbDWfnzSpElR2sUnTqEN3A90XgrP82ru2ZaqL7GTUJMmTWrVWQmiTGYmgrX2Fp0VIyL76IyIki8IgkMBTNP5ILruueeee3S409ixY3sG26mzG+/g4Z5AZ2dnt7X2Qzov0asvuOCCOOeW0Iso7B55r85L4MIw/MDMmTPjrMhMPGvtd3RWjIicpDMCgiCYZYy5CkBaj5XKOfcRY0ysl7J6M3/+/KMj9jl/NpPJPKjDnQrnVkSaaKzF9qBhGMbp7x7nfYiqwDl3n85KMLqwUJGqa6UOSjBeB8Mhn88fHLEN807bent7a3pF++6sX79+EYA1Oi/B5EMOOSTSAgQiimb8+PFvARBnt/RSz/Ou1mEt6u/v/1acHaAA5nCehopJbBHH87w4qyRq7sDpZ5555iEAWZ0XMVkHRJR8MVZXXFfsoPYYvb73OvXUU4/XYSMqPCheo/NSiMgX+/v7o0xi0m60tra+I+ZE5VW+7++2yFnrrr766htjTFIcx4f//xYEwSs9z7sOQOxe+M65TxljIhfV6pUxJuq97Bpr7aBnQDrnot7LpgdBcLgOk6y7u3uDzooREU74J1TMNt6y33777aFDGnLrdVCCOM8lFef7fqxFQ865rxYK5HVnwoQJfc65i3VeChE5T2dEVDki8i6dlSIMw7o5d7awGyfqcy0AjDvllFOO1CHRrhJbxAmCIKezYkQkMdueS1XYjv+Izotgz3uiGlPYvn+Gzgdjrb1KZ9qaNWtuArBN54Op1UOhh8LAwMD5ALp1XoL2pqamcg5Hpx1/FkVE4vQoD/L5/Hwd1pPCIcRX6LyIkaecckqUw+brWj6ff7nneX+K0Z7335xznzPGfE3njWrDhg2tAObofDBhGBa9l3V3d18dddWi53k1dS8bP358L4Coh4vHaTNJVWCtXa2zUnieF/t6RLH16qAETTqotnXr1rUAOFPnJejaunXr93RYTx588MGfAYjzM3hoPp8/RIdEVL5cLncggCN0XoK7fN9fpsNaFoZhrPbLnuedqDOiXSW2iLNq1apeAIOu2nsRUdoUJUmULd5RX/6IKAEOPvjgEyJuLd62Zs2aou0WC72+o249Prmnp4d99gE0Nzevdc59TuclOiUMw1N1SKXL5/OzY54R8Pt0Ov24DutNEARRV3EFxpgDddiIcrnc/r7v3wKgU4+Vyjn3BWPMl3TeyMaOHXsKgHadD2LdNddcU3TH3MiRI7cBuEnnRZy+cePGNh0mVWE3UpzDbimBgiCItctBRFiYqw3D/s49fvz4kyNeb3e6tLOzM84CpZoxc+bMvHPu+zovhe/779YZEZUvlUq9FYDovBhr7bd0Vut83/9LiYv1XeFz37PWntbb28uFYzSoxBZxCj3uN+u8iKNq8bBp59xDhQMX7wBwJYDvOecWOOfOs9aeFobh7Hw+/9K+vr7xS5YsyYjI6/U/g4iSLU77mUKBpihr7a91VkS6paUl6q+nbl100UWXAviLzkthjPluV1cXV9XGFOPnAgBcEARf12E9SqVS/wTwhM6VtQB+Yq09rbu7e6wxJurunbozMDAwOZVK3QqgnLZFXzTGLNRhoxORqD+zfyjsKisqxr2sbfTo0W/RYcIN2iL1RZT0HEDVl8/n4x6+zBZ51RenEDLsZ+2KSJxdOMHAwMAPdViPenp6fhJzl9UZS5cu9XVIRGWLs7jxmauvvvp6HdYD59zvdPYiRZvxIvJyEfmQ53mL67UNJlVO0gseT+ugiPHz58+Pc/DfsDLGfElEDhaRY0XkdBH5kDFmkTHmB57nLfZ9f1k6nV7R2tr6QqkvwkSUHFu3bh0B4GSdD8Za+2I3/Rd19dVX3wngeZ0PJm6/2nq0YMECGwTBewHk9VgJJo4aNeqLOqTiCi/QkX4uCu5MpVK7PSS9Dv1R/XUewF3Ouc8GQTDD87y9ROQ9nuctHjFixFb12YbT19e3RyaTua3M8wO/JiJ1eSB0Ofr6+iYAeJ3OBxOGYcn3sjVr1twQtT1oDd7LrA4G45xjESehRCTue3TUQh6Vb6IOSjCsRZxCK7XjdF6CPzU3N0c9T68mdXR0bAHwe52XYPSRRx55lA6JKL5sNjsVwMt0XoIr6nWOMwiCxSzaUKXFffislhU6KMYY8zGdERENp46OjtMi9tZef88999ymw90pPPiUPFFW8NIgCF6tw0ZV2PEQd3fHB4IgOEyHNLgjjzzytQAit/Vzzv1UZ/XMWnsTgDU7d9ts27ZtrIgcbYz5ciqVerDYgfGNZPv27aObm5tvAfASPRbBt0TkUzokoKmp6a0APJ0PYlU6nS55l2Nh9+linRdxeC6Xq6V2yikdFMH2awnl+36zzkrBwtywiHONWKeDaho3btxxACL/GXPOXa6zematjbX72BgTZ8cAEe1GKpU6SWelyOfzUecwakY6nX6ip6dnLIs2VEmJLuI45/6qsxK8KQxDthsjosSI0X7md7Nnz460UjMIgqhtaOB5Xq2tYB5Sa9euvSjiGWU7Gc/zfrR8+fKok3MNLeYLdPeGDRuu0WE9S6VSd3meN3nnbpvC2SGkdHV1dbS1td0E4OV6LIIfeJ7HxUC7EeNe9quoRcYYLdWQSqXeqbMEi7KgAwDW64CSwff9kTorRRiGvIZX0bZt20bGKeI451brrJqMMXHmM/o3btx4ow7rWSqVWgogzu9VnJ3gRLQbIvJanZXgkXQ6HXnhfi1pb2+PekQI0aASXcQJguBOnZXCGPOzgYGBctpoEBFVRDab3QdApC37YRj+SmfFpFKp5QAe03kRp2/YsKFVh41q0qRJ/dbaDxS2PUf18kMOOeSTOqRBHauDEvxxwoQJw9ripNqstS7qRHijWbduXcuoUaOuA/BKPRbBZZ7nnc/v9YvL5/MHAThY54Nw+Xw+ckHm4osvXlrYeRbF22qhiF74NUYq4lhrWcRJKGNMrHfNTZs2cRVuFbW3t58QcQfhTk/poMqO1kEJbhk/fnycM2JqVuGeHWdxz97ZbHY/HRJRdIVzyY/UeQlu1gERDS7RRZx0Ov04gH/pvAQTMpnMLSzkENFwS6VSZwMQnQ/iMd/3/6HDUjjnohZ/OsaOHXuaDhuZ53m3AYjVmkFE5hf6AVMR/f39ewI4QOfFOOeu0xk1thUrVqT32GOPqwDM0mMR/GLRokUfYAFn93zfj7oL56/pdDryM/yCBQssgN/ovIjxBx988Jt0mDQHHHBAp86KsdZGOu+OqkdEpuisBF2TJk3q1yENHRE5W2elyOfzf9dZtRTOH4vzjNSQE6LW2ljPhqlUKs7OASJSPve5z70cQJxnnIa8ZhGVI9FFHOx4GIk1mQbggEwm87cwDN+oB4iIqiVq+5kYhZh/y+fzv4m6i0REaqkNTVX09vZ+HMAmnZegOZ1O/8gYE6Vo15AymUycFab57u5uPuzTvy1dutSfNm3abwCcoMci+NWiRYveVSge0ItYvHixB+CtOh9MOfeyOO1BjTGJv5el0+mxOisie9999z2tQ0oGEXmVzkqwSgc0dHK53AEA3qDzEmzMZDLDthMnk8m8RmelCILgdp01gieeeOJuANt1XoyIzNYZEUXneV6cnfDBCy+88GcdEtHgEl/EyWazPwWQ03mJxhtjbnDOLSk8xBERVU0QBK8GsL/OB+EKhZhYMpnMMwCiPgwdyevjf2tra9vknPu4zkt0TBAEb9ch/TcROVxnJXiA58HQTgsXLjSzZs36GYC5eiyCK5ctW3YuCziDO/XUU48FsKfOB5Hv6+u7UoelSqVSDwN4WOdFvL6wwy+xjDETdVbEE1HPx6OqitQqtyBq21sqQyqVuiRmK7U7dFBNxpg4E6IvpNPpJ3XYCKZPn56L8f4DAHEKsUSkiEiUdrs7PdJoLbKJKiHxRZzm5ubnAcRezVcwJ5VKrXDOLQmCYBZXSRNRNXieF2kXDoB7CoWY2GKsfpZUKnWuDhud7/tXALhN56UQka/39PSM0Tn9lxk6KME9OqDGZIyRCy+88LsAol5jd3XVsmXLzuIkeXHGmKjf55vb2trKOvfDORd1N46fyWTO0WGSiMheOivinzqgZAiC4BUA9tZ5Mc65B3VGQyMMw5PiFvmdc3HOWKmkV+igBPfpoJE45+7WWQlewrNBiSriIB2U4G86IKLiEl/EwY7dOF8AUG7/YANgjud5S8MwfNRa+wmemUNEQ2XFihVpAGfofDAxCjD/o6en5w8xdi+es3TpUl+Hjcxa63K53Ptj3nvGtLa2flOHtEOhNVPkh31r7b06o8YUhuGXAXxQ5xFc+8ADD5zBAk5xGzdubANwqs4HU4l7WS6X+y2ASDukROSdSV6oFfUMFefcnTqjZIixSAfgfaxqstnsvsaYn+m8RH1bt269UYdV9lIdFOOcW66zRmKtjbMTxxs9evTLdUhEkUV+r3POcaEKUQw1UcRpamp6zjl3ic7LME1EvpbJZJ5xzt1jrf1ELpd7if4QEVFcBxxwwBsAjNb5ILKFAkxZOjo6ugBEffnc48gjj+T5YUomk1nlnFuk8xK9LQzD43RIwMknn7w/gMgrH8MwjNpeieqQtXY+gE/pPIKbVq1adfrMmTPzeoD+1+jRo+dG/Hntfv755/+ow6iampqeA7BU50VMzeVys3SYIPvpYDC5XO5WndHw6+7u7gTwLp2XoPvhhx9u6In2aujt7R2XTqdvABB3R/TvOzs7u3VYLVu3bh0BIGrrRTjnHtJZI+nt7X0o6rmg2LHTNPLkMxH9R+GeOFLnxTjnHtcZERVXE0UcAHj88ce/BqDSD74C4AgR+VoqlXrSOfeYc+4bYRi+sbDykIgoFmNM1HNRbujo6NiiwzistVHb0MAYE2dCou49+OCD34hxNgOw43t66Zo1a5p13ug8z4tyTtROfV/60pd4IHSDs9b+n4hcpPMIbnn22WfnTJ06NasH6MWJSNQdB0smTZoUZwfj/4jRUg2e5yX5XhZlJ86apqamZ3W4q/7+/onOuR/lcrk411SKqb29fSGAOO+Jt7J4PLSy2ey+LS0tdwKYpsdK5IIg+H86rKa2trZY51SGYbhCZ41kxIgRWwEMes18MVF3SBLRf2tubt5HZ6XI5XIs4hDFUDNFnOnTp+fy+fxbAQzlypgDAXzMGHPDmDFjNjvn7nbOXRSG4evWrVvXoj9MRPRiuru7RwE4UeeDsdaW3X5mpzVr1lwPIOoB8G/s6+uboMNGN3PmzHwYhu+N2tanYMrEiRMv1GGjE5FIq9ELHufh843NWvsuEfmWziN4ev369afuvffeA3qAXlx/f/8kAEfrfDCVvJd1d3cvBhD192tuYSV7EkWZLPyHDnY1MDCwd1NT01IA702lUpdZaz+8cuXKjP4cVVYQBEcB+IDOS+GcW6IzqpwwDE9Jp9N/BzBdj0WwOJVKDWuLH2NMnAnR4JFHHinrTM06Eef3bl8dEFHpYl6z8l/96lef1yERFVczRRwASKfTT1hrzwIQ6rEhkAZwJID5xphb99hjj63Oufucc18Jw/DkwiQtEdH/aGtrOx1AlMmULU8//XTUFmi7VZikXKzzIvympqaou4cagu/7fwXwA52X6OP5fP5gHTaymEUcTk40MGvt6SLyo8IO6rj2GTduXKSCRKPLZDJnRXxXWHPxxRffpcO4Ro4cuQ3A9TovoqWjo+NMHQ63np6eMVHajTjndlvE6e/vn5TJZO7apSg0W0S+td9++52sPkoVNDAwsJfneVcC8PRYCbo3btxYdptB+l+5XG6ac+5qY8zVADr1eAQDuVzuMzocBnEmRFdzlxcA4CkdlCDO95uICkQkzjnjz3NxHlE84lzk1qHDzlr7ThH5SZkv8+WyhRY7d1hr7+jq6lo6duzYHv2herV8+fLUjBkzoh6e3uec+7wO60CPMeYnOqxnQRAc6nne/Tov4i4RaYgJNOfcnwEcrvNB/EhE3q/DcoRheLQx5g6dF/Gk53kHWmtr5sawevXqpsmTJ0dq3eOc+5Ax5ns6H8zmzZvbOzs7VwCYpMdK8NdFixYdPlQPq865ywC8R+eDuFpE5uiwWpxz10fdqQbg/4nIx3RIyRMEwSzP86KeZXKjiLzon4kwDE8yxiwBkNJjMazv7e09qK2tbaMeoP/lnHsk4gHbXxWRT+uwHGEYnlKYnI3i7yLySh0OpyAIXuN53n063x1r7Yme5/3P4o6enp6xra2tS1+kXdQVnuedM1z371wuNy2VSkVt53S/iLxKh0k0MDCwdyaTuT3ibqpdXSoiH9RhNfT29o5raWnZoPMinkpym6kNGza0jhkz5gRjzDsKzxNRis0vyjn3KWPM13Rebc657wI4X+dFLBWR1+qw0VhrPyoi39R5ERtEZA8dNgJr7XkiEul9CMBXRGTYi53Oue8BOE/nRfzGORd1/iLxgiC4MZ1OP6nzanHOXQRgvs6LuFdEjtAh1bcgCF7ted5fdF7E7SLyOh02spos4mDHTefdIvLDmKuhhkIewH3Ouduttbdcc80198+bN68aO4aGRcwiTr16XkQiH0BZy1jE2b1sNju18CBVcpE5DMOjfN+/R+flWLhwobnwwgufAbCXHhtMGIazfN+/W+dJVa0iDuJPJgI7/p3/Z4z5rs4roQaLOPcDOFTng3HOfcwYM6x96qk0lSzihGF4jDHmBgBNeqwM14jIqTqk/5bP52f6vr/b3SAvJgiCg1OpVKwzxHZnxYoV6WnTpq2LusJ+KH4t5bDWni0iV+h8d3K53H6ZTObpXbNCAed2AC/fNQdw1bJly06fPXt2oPKqqeciTmFRzK8A7KnHSmTz+fz0dDr9hB6ohlov4nR3d3c2NzdP9jzvQBF5OYDXADgi4o73Ym5ftGjR8UO12CYK59zvAbxF50X8RkTO0mGjCcNwTmHRRxSB53np4SqAD6cGLOLUJefc6caYK3VeLc65H8RoM3qtiJyiQ6pvLOJURtmrVoaLMeYn1tq5AJKy+yUFYJaILPQ87765c+eud85dYa19S4J7cxNRhaXT6bOjFHAAPJ1Op/+sw3IVXkR/q/NiEn4o9LDyPO8aALGKOCJySeF8CQJG66AEm3VA9S0IgsOMMddWuIADAKdYa9+pQ/pvvu+/TWdFPDwURZPp06fnAPxB58X4vp+0e1mkCfGBgYEtu/51f3//xN0UcH77wAMPnDGcBZx61dPTM8Y5931jzK1lFHAA4PfDVcApwx7OuZuq/HWzc+4O59xfnXOPOOfWOuf629vbN/u+/4CI/BbA5wAcU+ECztO9vb1nJqGAUzBOByWIWqSrS865F3RWAn/Lli2cqyGKL9Iim4KoZ/cSUUHNFnGwY0Lt2iAIXgPgET2WAGMAnC0ivx8xYsQLzrkbrLXndHV1degPElF9MMYIgLN1XsRvhmr1VxAEv9ZZCebxOrV7AwMDHwLQrfMStDc1NUVd7VavxuigGOfcf01oUn3L5/OHeJ53A4A2PVYJIvKtbDbLw4x3Y+nSpT6ASOfKOOd+pbNKCcMwzr3srJUrV1ZyorcsUXvGp9Pp1p3/PwiCVzY1Nf3tRQo4P1y0aNHZPAujsnK53Eucc99obW1dCeCDZXZ9yOZyuQt0WANaALy+yl/HAzgawKsKbRz3HIIivrYhn8+/PmEtNiMvdHHOcaHLjp0lXTorRVNTU+TvORH9W5yzwrfqgIhKU9NFHABIpVKPrl279lUAvg4gqe3L0gDeKCK/GDVq1Hrn3G8LW/OjrNYnooTL5XKHR11tm8/nh2ziq7AqOurK6NaRI0eeoUPaobm5ea1z7rM6L9GbwzActjZmSbBixYo0gHadF8MiTuPI5XIH+r5/c8yXwlK1p9PpyxcvXlzO5GzdOvLII48HMF7ng7DZbPY3OqyUdDp9D4BndF7E6P322y9JrToi7cTMZDKnbty4sc1a+7FCe0K9E+RLnud9MEG7B2rWhg0bWsMwfK21doFz7oFUKvUkgI8BqMTq/K9lMplVOqREeD6fzx8znGdJ7EbkZyQAsYoX9Safz8cqZnmeN1JnRFSyOAtmktJNiajm1HwRBwAmTZrULyKfDILgVQDu0uMJ0wzgDGPMHWEYLrfWnsFJBKL64Hle1PYzf0+n04/rsJKcc5FXMIsIWw0N4qKLLvohgJIPqN6VMeY7jbzTac8992zWWYkinXtEtSmbze6XSqVui9lOJqoj58yZ8ykdEmCMiXovu7O5uXmtDiulsFs1cpEoYfeySEUcEfnumDFjtorINwrvDjs559xHRORzQ7WLt4o6wjB8XRW+Xh+G4clhGM6z1r7XWvs559y3nHPXOuceGzdu3FZjzJ0i8gUAh+hfZBlWrFq16mIdUiI8nM1mD0un01HPcaqGOEUcToju2C3fp7MSxZmEJqId0jooAXcQE8VUF0WcnVKp1HIROdpaeyyAO/R4Ah0iIr+dO3fug2EYvkkPElHtKLRtiXQQ6VC2n9kpl8v9FkDUlbqvzufzL9Mh7bBgwQIbBMH7Yj6AThw1atSXdNgofN+P86AP51xOZ1Rf+vv7J6bT6VsBTNRjQ0VEvpDP52fqvJEVisxv1vlgqnEvy+fzkRckAHjdwMDA3jocJnonTSlebJHXRcaYb+uwRh1gjLm1Cl83GWOuNcb8QUR+JCKXAPgwgJMBHAjA17+wCugPguDMqVOnZvUADbvLX3jhhcObmpqe1QMJ8e9WiqVyzsUtXtSVLVu2xHpWFJFYz6ZEBBTOBo/EORfnHZqI6q2Is5PneXeIyLFBEBwM4DIA2/VnEuZlxpjrnHM3ZbPZ/fQgESXfvvvu+6aI7X+C/v7+3+mw0pqamp4DsFTnxfi+n6QVzImTSqX+CeBrOi/R+4MgOEyHjcDzvFirHZP0sN/f3z/ROXd10r+WL18e+aVqGI1pamq6FUDcZ6C4fz7Svu9fsWbNmrg7xOrOyJEj56mdH8X0b9269SodVlphxfxynRdh0un0O3RYbYUzhirRmutqz/O+oENKHufc+wstbSk5nrPWnioi54wfP75XDyZInHv3gA4a0f777x+riBNzJwER7RDnmhXogIhKU5dFnJ1SqdTDIvK+TZs27emcOxfAnTFWpFfT69Pp9CPW2v/jeTlEtSVG+5lbW1tbN+hwKMRpqQbgbYXzS2g31q5dezGAlTovgfE877JG/P4aY+L+Nyfm3u15XjuAU5L+1dHRUUvPeK8CME2HJXo6CIIZAOKuqp4+ceLEht0dp4lI1HvZtZ2dnd06HApx7mUicu7ChQuH9WfhFa94xSgA5T7Xr+3p6XlPHbRQawQXG2Mu1yENmx4AX9q0adN0z/Ou0YNJUrhWvdgOvGI4Ifqf1ptxrpFDsRuPqFHEOZd8WJ/LiGpZQ/zwjB07tscY8wsROWZgYGAv59xHACyLecEZas0i8u0wDK/btm0bD9kjqgE9PT1jALxB54OpRvuZnbq7uxfHWKU35oADDjhZh/QfkyZN6rfWvi/mC+PLDjzwwE/osAHELcbwBZtezOpsNnt0KpV61Fr7npg/iwDwf2EYvk6HjabQemyWzgdjra3avSybzf4uxrP73vPnzz9Wh9WUTqc7dRaRtda+vb29Pdah3VRV3/I870Id0rDYCuDrfX19U0Tkc2PHjk38uTEnnXRSnAIOYlwX61KhCBanYM7vH1F8cXbAxb3WETW8hiji7Kq5ufl5Y8y3RWR2X1/fns65dwFYDGCb/uwwO7Gjo+MvuVzuJXqAiJKlpaXl9Ihb8Xs2btx4rQ6HysiRI7cBuF7nxRhj3qUz+m+e590BINaKWxGZ32jX+DAMY50PICJxtupTfVuTy+WObWpqWo0dP4u3APiJ/lCJxBjz8+7u7igtMetOOp0+K+K7wcaHHnroFh0Olebm5ufjnHk53PcyY0y5f64uLtxrKLmcc26B53kf426pYWUB/Nk5d+769esnisgnW1tbX9AfSqqnnnoq7kKXOIWLunPWWWfFfVbkTiai+CIXcfheRxRflBe1utPa2vqCMeZnInLasmXLxoRhOAvAIgB/SciKjANSqdSyfD7/cj1ARMkRo/3M1dXux22tjdyGBsBxAwMDe+mQ/ltPT8/HAWzUeQmaU6nUDxupfWYYhpEf9LHjZ6xFZ9TQns/n88dkMplVu4Zbtmz5RBlt1Sa1t7d/X4eNJMa97PczZ86Mex5RLHFaqgE4pbu7u9zdMLGVef362aJFixbqkBJli7V2njFmEQs4w2I7gD85587r7++fJCJHGmN+MWHChD79waSbN29eGHPHMncrAxg3blysa61zLtYCIyIC4hRxAMT6WSUiQJzjs+aL2bZt28i2trbXGmOOBnAMgJcO4yqXTfl8/oh0Ov2kHhguy5cvT82YMSPqBTsL4Lc6rANbReSjOqxnQRAc6nne/Tov4i4ROVqHtS6Xy+2fSqWe0PlgrLUnFFaNV82KFSvS06ZNWwcg0kSWc+5CY8xFOk+K1atXN02ePLlf54Nxzn3IGPM9nZfDWnu2iFyh81I45841xvxC56Vyzl0G4D06H8TVIjJHh9WwcePGtjFjxmzXeTHW2uM9z7tV58Mhl8sdmEqlHtN50qxatapp6tSpVZ+YCIJglud5S3VeQevz+fzR6XT6cT2AHYXC440xf4r7zOace6sxph6fVQYVBMErPc/7m84HE4bha3zf/6vOh9LmzZvbOzs710edAHDOfdgY8x2dV0MYhicaY6Luhn3EOfclY8xv9EAS5XK5aalUaoXOG8DVAwMD5xd2iSVSb2/vuJaWlqqcwVgFvQAeBfCwc+6hMAzvvfbaax8qFD/qgnOuD0CzzgdjrT016ef9VMPAwMBemUwm8kKOIAgOSaVSD+m83llrzxORqO9DXxGRz+iw2pxz3wNwns6LuCfmWaaJFobhpb7vR3p+qyTn3FUATtV5EZeKyAd1SPUtCIJXe573F50XcbuINHzL612xiFOi3t7e8c3NzceKyLEAjgWwt/7MEHuqr6/vsKRsCY9ZxNkiIpEmkCmZWMT5D+fcRQDm63wQ65YsWbLXcLxwOud+COB9Oi/i6UWLFk1dsGBBnJWBQy4pRRzs+OfeAuA4nZdgc29v77S2trY4u3lqqohjjJHCbpxIq0adc28xxvxB58OBRZzBDXERZ2MQBMekUqlH9MCuYvxM7GrLwMDAQc3NzWv0QD1zzn0HwId0PognReQAHVaDc+63AM7QeREPi8jBOqyGMAznGmMW63wQ7oEHHshUe5dTORqwiHOftXZ+LbS5q7Mizgbn3KK77777stmzZ9dlCyzn3HoA43U+GOfc240xsRYS1ZN8Pv8y3/f/qfNicrnclEwm85TO612jFXGcc+cYY2K1wKbdc879BEDUtrW/FZG36pDqG4s4ldHQ7dSiaG1t3WCM+Y2IvEtE9snn8wc45z5UOGeiGtu192tpaflV4cA+IkqAQhuss3VexG+Ho4CDHRNJcdrQ7Dt//vy6K74NhVwu94GY94PRra2t39RhPSq0munSeQnG6oAazuYgCI4rVsBB+W3VRjU1Nf2ikdocLl++PBW1KBKzrVlFxGwPelAQBIfqsBpEJNKqegAyderUdh3SsMsDWByG4WtF5PBaKOCU4Znu7u5Rcb62b9/e2d/fPyGXy+2bz+cPDMNwtnPuLOfcZwH8CkA5k+XjReT7s2bN+mcYhvU6qdOtgxLwerHjvWyMzkoxMDAQ57mUiHaI8/NT7lmBRA2LBYGY0un0k8aY74nISWvXrh1jrT0RwA8ADOXKzeMuuOCCT+qQiIZHLpc7CsA+Oh9MEAS/0lm1pNPpewA8o/NihvtQ6FqRyWRWOecW6bxEZ4dhGGcXTy3apINiRCTSqlSqO1vDMDyh1HYnnZ2d3dba9wCIu9382CAIPqzDenXwwQe/PmKh1OXz+TiFlIp46KGHbo5zDpnnecN1L4u08xA77iec4EiG/sJ5K+/r7e2dKCKn+b4/VDsNk8SOGDFia5yvjo6OLS0tLeszmcwz6XT6Cd/3lxljfmOM+bKIvE1EpuTz+QMAXBTn57jgQGPMrc65K3p6emJN3CdYnO9JlOt33RKRcTorQXbUqFHbdEhEpXHOxSni8JpFFBOLOBUwadKkfs/zbhSR8zzPmxyG4SsBfKXMlUYvSkS+kMvl9tc5EVWf53lRD4F+NJVKPaDDainsgojTX//U7u5uTiiV4MEHH/wmgJImmjVjzKXr1q2LdM5DjYpcxAGwlw6oYWwLw/AE3/f/oQcGUzh37Cc6L5WIfCmfz79M5/XIGBP1XnZfJpNZpcNqKbQZu1LnJThjzZo1UXfFVELkdqSe5/GeW30OwHMArnfOLbDWHrt27drRIvIGY8xlcVue0v9Kp9NPisiFmzZt2g/Alwq7nOI4u7W19YEgCI7SAzVsvQ6K4UKXf5ukgxK8UHg/IqJ44pwJN0EHRFQanokzxIIgeI3nee8EcFbUQ1gHca2InKLDauKZOI2NZ+IAa9asaZ44ceI6ACP02CDudc7dpMNqEpF9YvStHbJzZMqVpDNxdir0e7035kKJyL2mY5z/MWxn4mDHr/eKGG0I7yicSTfseCbO4Cp8Jk5PoYBzrx4oRVdXV8eoUaP+CWCyHivRg4899tirp0+fHvV5p2Zs27ZtZEdHxzoATXpsEHc45+7UYTWJyIGFZ+tIhuPsCGvt2SIS6d9prZ3jed7VOk+qmGfi9AKoxrXUAggKhYLeQtvTLgCbnXPrnXPPWmuf7urqWjl+/Phe/TfXuphn4jwlIlN0OFQK7xW/B7CfHitR6Jz7qDHmu3qg1sQ4nwwArheRk3TYaJxz/w/AR3RexL0icoQOGwHPxKFKCIJgtud5d+m8iHDZsmVN9Xq2Gb04nolTGSziVEl3d3dnW1vbB0TkowBG6/GowjB8je/7f9V5tbCI09hYxAGstaeLyO90XsceEJGZOhxuSSziIP5LOHb8eAWHlto2CrVZxFkI4EKdF/GciMSdiK8oFnEGV8EiTm8Yhm/0fX+ZHogiDMPjjDE3A4h7xs2XReSzOqwX1tr3isiPdF7Hqv4sYq19q4hEaj/nnPu4MaZmzkqLWcS5X0RepUOqrFoo4gBAT0/P2NbW1usBlPNnouav19baj4pI1J/9R0Tk5TpsNM656wC8SedF/EZEIi8IqAcs4lAlZLPZfdLp9NM6LyaXy03JZDIV71xEycUiTmXEWSVMMXR0dHQZYy7Zvn37/gB+hPh92oEdbRY+pjMiqh4Ridp+ptbNyOfziSviJFVXV9fnY56R5vu+/6OFCxfW7f3ZORenDdOkjRs3tulwOPT39693zr2nml8AKlEUqSV91tqTyi3gYMfz0q0AfqzzCD5ZZ616/ksD3stmZ7PZqTocSs65qIueICL76oyonrW1tW1cv3790QBu0WMRfMZaO1+HtSTmM9KUxYsXezpsQAfooARxvt9EVPDoo4+uBRDqvBjf9+PuvCRqaHU7SZRUHR0dXSLyfmvt62MeXLjTqb29vex/SzQMent7xwE4Xuf1zvf9d+qMXtzo0aO3W2sjrRDbxasvuOCCuH9v4llr47wwy6hRow7S4XAYMWLEVmPMT6r5BeBx/euoYwPW2lM9z6tYu64tW7Z8EsCzOi+R53neL7u6ujr0QK3LZrP7Ami0NjKSTqfP1eFQ6u3tvQPAgM6LqGqhiSgJJkyY0Ld+/fpTAdyjx0olIhdZa9+n81oRBEHUHW0A0HzSSSc1dOF3w4YNrXHa8TnnEr+zmijJCucUrtR5MYW2uEQUEYs4w8TzvFtyudxrAMTdQphqbm6eq0MiGnrNzc1nAkjpvAG8dZgOha5Jnuf9EcASnZdCRC4ZGBjYS+f1YNu2bQ/HOejbGPMKnVHdyRbOAilnJfb/6Ozs7LbWvruMXdD7jho16ls6rHWpVOptZbSZq2XnVHPVekdHRxeAK3VexEt1QNQIJkyY0Ldt27Y3AfinHiuViHw/DMOafE/+8pe//FTh7KZIUqnUDJ01ktGjRx8EIPJ1PQzDOEUzIvpvka/XIvIynRFRcSziDKNMJvNUNps9GsDzeqwUInKqzoho6DVg+5mdRu2555687kQwMDDwYQDbdF6C9kwmE7VPdU0YPXr0dgD/0nkxIvIanVFdyVtrT/c87yY9UAkVaKt2bhiGdXP9M8aIiJyt8wYx8dRTT329DoeStfaPOiti0rZt20bqkKgRjBw5clsulzsFQJceK5FnjLk8n8/XXGFjwYIFFkDJ5yLuJCKH6qyRGGNeqbMSDPzrX//iThyiMjnnIhdxAByiAyIqjkWcYdbU1PRsGIbzAAR6rASHr1y5MqNDIho6uVxuOoCG3REgIu/SGe1ec3PzWudc3EN2T67VlaQlWK6DEszWAdWNwFp7hud51+qBSurq6voEgNU6L5Ux5kd9fX176LwWFXaDv0TnjcIYU9V7mTEm6qGs0trayt041LAymcxT1toz45y1UNDi+/41hRbItSbqwc8AcKQOGomIxDm77qHp06dHPrOMiP6bc+5hnZXgkBUrVqR1WI+y2exUdjOhSmERJwF8378PwHd1XoKWffbZhxVsoioqtJ9pZEdns9nIPacb2UUXXfQjAPfqvBTGmO9s3bp1hM5rnXPurzorwcRcLjdNh1QXbvM87yodVlrhrKpy2qqNbW5u/okxpuZbkHme1+j3sjdVeXI3ckHeGHOwzogaied5tzjnLtJ5BJNbWloW19pEobX2Pp2V4JUbN25s02EjWLhwoQEwS+cliFMsIyIlm83G+VnK7L///jN1WI/S6fTlEydO7HLO3W6t/VwQBK+qZltfqi81U8RZsWJFur+/f898Pn9IGIbHW2vfGgRB3aw42b59+8UAtuu8GGMMe0kSVUnhJeEsnTeYqh8KXesWLFhggyB4H4A4q/32HDFixJd0WOvCMLxdZ6Xwff9EnVFdiHxGUlye590G4DKdR3Bi4ee5ZhUmNE/XeYNJNTc3v12HSSIiNdcKiqjS7r777ksAxClq7HTUtGnTLtFhkvX19d0Z476Y6uzsPFaHjeDzn//8TACRi/LW2qU6I6LoWlpa1gNYqfNijDF132Vh9erVTQBmAmgCcIyIXOJ53l/nzp270Tm3xFr7wVwut7/++4h2J1FFHGvtac65S5xzP3bOXeuc+7Nz7gnn3JZp06Zlm5qa1vq+/4Ax5mYR+bXnef+n/xm1qnDo6RU6L0ZEDtAZEQ2N+fPnvxZAXR42H1FVD4WuB6lU6hEAX9N5id4XBMHhOqxlmUzmUQDrdV4Mz4KjSujq6vpkOW3VROTrtfzCdcABB5wIoFPnjUZE3qmzIfSMDkrQECtUiQYze/bsIJfLvS3OYsddfDwMwxN0mFTt7e2bATyg82KMMSfrrBF4nneSzkpg+/r6lumQiGK7WwfFiMhxOqs3EydOfAWAFzsCYxSAOSLy/VQq9YRzbrVz7qfW2rf29vaO1x8m2ilRRRwReTuAzwF4N4CTARwOYH8AuzvYc6oOalkYhlfqrAR76oCIhoYxptHbz+y016mnnnq8Dmlwzz777MUAntR5CYzneZfVWjuQwVhrHYA4u3EOy2az++iQKIoKtFVrTaVSly9dutTXA7WA97J/m1bFAvnjOijBS+vpuk8UVyaTWeWc+4jOIxBjzC9rbGLseh2U4JQGvWa8RQcl+FuhWEbRxDnHmRqAcy7Ozrajurq6OnRYTyKciTgZwDtF5NctLS3rqvh8SjVGnIv7/lp5zrnfADhT54PoX7JkSfu8efPiHniYKCtWrEhPmzZtW2GrXaluFZGqT6YuX748NWPGjKitgbaISMOv/KwHQRAc6nne/Tov4i4ROVqHtWLdunUte+yxx3oA7XpsEP8CcLMOE6YDQJyWMotF5DQdVtvq1aubJk+e3K/zwTjnPmSM+Z7OqyEMw2OMMbcBiHymhnNuvjHmf1qCOOcuA/AenQ/iahGZo8NqC8NwnjHmDzovxjn3BWPMQp3XM+fcDwFEauG1atWqpqlTp2Z1PtSCIJjleV7UF7kbRaTqrfLifF93VYt/Fru7uzvb29vXAYgy0fcogDt1mDBjAJyhwxL8VETercNKs9Z+QkQi78YMgmBmKpWKvCK/2nK53LRUKrVC50XcLyKv0iFVVm9v77iWlpYNOi/iKRGZosPh5py7EcAbdB7BdSJSE7tV8vn8Ib7vR/7Zt9bO8Tzvap3XqyAIXuF53t91XszunqmHw8KFC80HP/jBlrFjx/bosaFkrf2IiPw/nQ/GObfAGLNI59XmnPsegPN0Phjn3DnGmMt1TpXR09MztrW1dX3UjQLOubcaY36r83rhnLsfwKE6L2Jg7dq1nZMmTYo0x5F0QRC82vO8qOcn3S4ipRbCGkLSijjfBhCpRVo+n39pOp2O+tKQWM65BwFEOcj0HhE5SodDjUWcxtaIRRxr7VtF5Nc6H4xz7nxjzPd1niTGGAnDcCWA/fRYEbne3t5JbW1tG/VANdVaEQc7/v0/B/AOnZdgIJ/PH5xOp/9rN0+tFnEKhdENAKIexLt22bJl+8yePbthVgPGKTawiFPc5s2b2zs7O/8JYG89VqIgDMMjfN//mx5IKmvtB0TkBzofjHPubcaYX+k8SZYuXerPmjVrDYCoK+17Nm3aNGGoJ89i/lzAOfcuY8zPdJ40LOIkVz0VcQYGBvbKZDKPFBYgxeKcO9MY8zudJ5Fz7olCV5IobhaR1+uwXjnnfgDgAzovZjjmkHp7e8dlMpn9jTH7i8hLCr+3+xe6y1wqIh/Tf89QstZ+SkS+ovPBOOc+a4z5ss6rjUWcZHLO3QvgMJ0X8UcRebMO60FfX9+E5ubmtTEWb95Wj63mWMSpjEhV0qHmnIvcH9/3/SN0VuPW6qCIF+uvSEQVJiJR28+E/f39i3WYNIW2VpGKUwXplpaWqN8T2rFS6RMA4hS/mlKp1KXGmKgPgok0YcKEvpjtQiYeddRRcVbcE/2XCrRV8z3Pu2LdunUteiCpYtzLBrZu3fpHHSZNoaj7e52XoG306NGn67DS1q9ffz+AyEVVEeG5OEQFTU1NzznnPq3zKETk29u3bx+t8yRyzsV5Pj8ul8tN02E92rZt20gAZ+u8BA8NdQFn3bp1LdbaC51zVzjn/uqc29LS0rLB87y7ReSnAD4DYA6AlxW6sOzu+IChFGVH7k6R72PUOJxz1+msBG+osVaXJWtqajo9RgEHzrk478fUIBJVxAHwtA6KEZHZOqtxUVcCRt0NQ0QR9fX1TQAQdTXEstbW1qgrH4dFPp+P85JY7UOh60Z7e/tm59xHdV6iY4IgOEeHtcpaG2tFnIh8dvHixZ7OiaLyPO82AJfpPIL999hjj6/rMIlyudxLALxG50X8qbOzs1uHSRSGYazdQtW4lxVaYsTZsRVldz5R3fN9/0cAIu9q28W4tra2b+gwifL5/OUArM6LMKlUqqxCV61ob29/X8Q218COCdLf6KzS2tvbW0RkYaHI9KoSijTFxitORFjEoYrK5/NXxlgYlWpubh7y57DhICJxOm8gn8/HKYZRg0hUEcda+y+dleD1dTaRE3VnTZ8OiKiympqazgQQ6TrjnIuzInhYpNPpJwBEbY8HAC8NgiDqhCDtaGP3awC36LwUIvL1np6esTqvRRdffPHNAFbpvATT58yZE3VHAdGL6urq+iSAZ3QewfvDMCznnIaqSKVSZ0ddEVhL9zLf9+8H8ITOS3B4lVau362DErxMB0SNzFrr8vn8ewBEaqWrvD0IgsQvBM1kMs8AuFHnJTgrl8sdoMN6snnz5nYR+bjOS5Dr7+//pQ4rrb+/f0BnReyhgyqI2s4YADbrgGinTCazCsCfdV6MiJy3YsWKOEXFxAqC4BUxF+L8I5PJPKVDop0SVcRZv379CgChzosYfeqpp9bsORsvYoQOinhBB0RUWTHazwR9fX1X6TDJnHOxVjB7nleXK2eqIZfLfSBmIX50a2trpINIk2rBggW2cN5LZCJy8ebNmyOvwCTSKtBWTYwxP+3p6RmjB5Ki0IYx6r2sb/PmzTXV0iFm+yGkUqkhv5dZa/+qsxKM7O/vn6RDokaWTqf/5Zz7os4jEM/zvr98+fKUHkgaa22cMxz9VCpVzvcn8To7Oz8OIM6Cpmur0Snhueeei7pjZaIOqiDy9885t0lnRLtyzsXpsjDxwAMPfLsOa5nneXGKzDW1eIqGR6KKOIVWA5H7kxpj6qa1TOFguyiinqFDRBHk8/mXAzhE50Xc2dbWFufMk2HT39//ewBxDoo/fcOGDa06pOIymcxTzrmFOi/RWWEYHq/DWtTT0/MzAHHaNU3s7Oy8SIdEcXiedzuAH+k8ggmtra2xCpLVkMvljgCwr86LuHHs2LFR2/wOq0J70DjFuLcP9YRuNpuNs+MV6XSau3GIlMcff/yrAB7XeQQvPeSQQz6sw6RJpVK3AHhI5yWYE4bh63VYD7LZ7D4APqXzUoRh+E2dDYWZM2fmAeR1PogJS5cu9XU4xCIXcay1LOLQoLq7u68EsF3nxYjIBStXrozalSiRstnsFABv0XkJwmw2G2sxEjWORBVxCiJvvwNwWl9f33BsQa2owiGLkVZhOOee1BkRVY7v+1FXLsM5d6XOkq6wKu1WnZegY+zYsafpkEpz9913fzPmyzmMMZfW0oHqu9PR0dEF4Ds6L9GHwjCsp924NIy6uro+VWZbtbnW2lj9r4ea53kNcS8rtKC4T+clGHfwwQe/SYeV1NLSsi7ODnoRibrAi6juTZ8+PWet/WDMoi2w42frwv7+/kjv3tVmrXXOuS/rvBTGmB92dXV16LyWGWMknU5fCqBZj5XgHt/3/6LDIRTlep867LDDpuhwiI3TQTFBENTUIkWqvpEjR24D8FOdl2DyfvvtF/fM2ERJp9MXRG3FX/Cn5ubm53VItKvEFXGstbfrrASZ5ubmT+iw1rS2th4XtVe5tfZhnRFRZRTO2zpL50Xke3t7r9ZhLYjbUk1E3qUzKs3s2bODMAzfE6OVKADst8ceeyzQYS3avn37NwFs03kJjDHm8t7e3vF6gCiqCrRVg4h8O5vNRt3xMqRWr17dFGNFYO+GDRtu0GEtiHsvM8ZU4172qA6KEZFE/XkiSgrP8+4EEOvnvaC9qakp8e1pL7rooisBxHnn33vUqFFxF8kkUhAE7wYQa4eRtTbu7ve41utgMJ7nVeNstl1N1kERuRtuuGHIW9FR7cvlct+J824rIp8fGBjYW+e1JAiCV8ZoXwzsuEYldkc/JUfiijg9PT23Rdx6utP52Wx2Px3WEhGJupq978knn4y1gpuIijv11FOPAbCnzou4vb29vSYPfdy4ceO1AOK0zjmi3g9QHUqFw7i/r/MSfQzAQTqsNR0dHVucc1/XeYkmtbS0LK6XLfg0vCrQVq0jnU7/srAIIBEmTZr0JgAjdV7EdRMmTIhzZtew6+vr+wOAnM5L8PoqrMpfqYMSsIhDtBt9fX2fALBF5xGclvT2tAsWLLDW2s/pvETnFBYn1Lx8Pn+QiHxb5yVa6nnebTocYpGKOMaYQ3U2VAodYEbrvIhn582bF3linhpPJpN5GsBinZegLZPJ/LRwjmPNWbx4sed53ndizrOvvPrqq2/SIZEW5w/XkBoxYsTWmC19Mul0+scLFy5M3H9TKQYGBiYDOFnnRfx5+vTpcV5SiagExpjIB+zV8mF048eP7wUQZxeRVONQ6HrW1dU1H8CzOi+BD+DVOqxFzz333NcBPKXzEh05ZcqUK2r1GaAE3GlURRVoq3bUnDlzErNDPM69zFpbc63Udmpra9sE4E86L4GXyWSG9JxN51ycsyz30gER7dDa2vqCc+6zOo/CGPPdpC8E8TzvBgA367wUIvK9IAhm67yW9Pb2jvd9/5qYbdRsGIaf1GEVRH2uP0wHQ6WlpeVgnZXgCR0Q7U4+n/9CnN04AI4NgiDWmVfDbc6cOZ8B8Bqdl8I5900WSakUiZzscM7FPczpmAsuuGC+DmtBJpO5uDAZVzLn3PU6I6LK2LhxYxuAU3VeRK6np+daHdYSa23c6+/bh+FAzrpRaOP0IZ03kr333nvAWltOL+TTLrzwwp8laQdEuVasWJF2zv0YwCl6jIZOhdqqLcrn84fovNp6enrGxmg9s33NmjU1vRow7ruEiJw7xCtA45wn0KkDIvqPiy666McA/qrzCPbfb7/9ElN43518Pv+xmLsMM57nXZ3P52ty5/bmzZvbW1paritjV+LlhV3vVeWci1r0OLzw/jnkRCTORPMKHRDtTjqdfhzAFTovhYhcHIbhsTpPsiAIXiMiX9B5idY+99xzP9ch0YtJZBHnueeeuwpArHZEIrLAWvtWnSdZGIbHADhb50XYgYGBP+iQiCpj9OjRcwC06ryIWzo6Ospp6TDsrr766tsArNN5CfY48sgjT9Qhlc7zvD/G3HpeNwrfgzi7wXY6Z+7cub9O+oraUgwMDEyeNm3aXQDqog1KralAW7W07/tXFM6jGTYtLS1nAEjpvIg/7r333gM6rCXPP//8dTHP2Zqaz+eHcsX6Jh2UYJQOiOg/FixYYIMg+GDMVd/AjjmEz2Wz2X10niTpdHoFgC/pvESjfN+/JZfLVfvclbJs3LixrbOz83oAr9RjJdrc19f3aR1Wg3Punzoroqmzs7Mqrf1E5HU6K8Y5t1xnRIPJ5XILAcR5nvSNMYvz+fxL9UAS9ff3T/Q8b3HURfk7Oee+VOvP3VQ9iSziFP4Axz3UyYjIL6y1Z+qBJOrr69vDGPMrAFFX/d3U0tISZ6KViEogIpEPpHPO1Wz7mZ0K23h/p/NSGGPYUq1MAwMDH4458Vg3+vr63g/gBZ1HcPqUKVNu7e3tHacHaoW19pxMJvNwNVtr0P+qQFu1l02ePPkSHVZTnHtZLbdS22nSpEn9AJbovBRDeS9zzvXrrAQj6rhVJFFFpFKp5QAu1XkELel0Ou55K1WzatWqLwGIWhzYaXwqlVqaz+dn6oEk6u7uHjVmzJhbAMzSY6Vyzn2ktbW1nGfK2Hp7ex+MuqPXGPMOnVVa4fn4KJ0Xk8/nq76biWpbJpN5BsBXdF6ikb7v35rL5fbXA0myffv20U1NTX8CEPdMxX89+OCDl+mQaHcS+0LQ29v7bQC9Oi9RSkR+Za1N9Lbo7u7uUc3NzX8CMEGPFWOt/Z7OiKgyCgcbH63zIga2bt1a063UdgrDMFYbGgBv7Ovri3w9o/9obm5+3jn3GZ03ktbW1heste/TeURHtbS03B8EQZx2EcMml8vt75y7VUR+AWCEHqfqqkRbNQAfKey4rrpcLndgjNXL255++ulY5y4kTRntQedt27ZtpA4rJM6fJfP+978/zjkQRA1l27Zt86MeJq+cHIbhSTpMkqlTp2aDIDgbQFaPlWis7/tLk/7fmc1m92lvb7+nzMUsSwqLZYdFR0dHF4DHdF7EG7PZ7BQdVlJzc/P7YuwYWJvJZFbpkKiYtWvXfgXA0zov0YRC4TmRrSD7+vr2aGtruw3Ay/RYqay1n5g5c2Ze50S7k9giTltb20YA39R5BEZEvuac+90QvojF1t/fP7G9vf12AHEOlVueSqXq4gWbKIkymcxZAKKeq/Gnzs7Obh3WIt/3/xHjpQMA/KampsgHaNN/u+iiiy4D8GedNxLP864B8C2dRzTZ87y7nXMLk95erbe3d5xz7lupVOoRAJFbXNDQKbRVi7s7HDsW1ppfDMezaCqVirwLB8A1U6dOjTs5mCgXX3zxXQDW6LwEze3t7WfocDhlMpmoE25EDWfkyJHbnHNlLeI0xnx7zZo1iS6aplKph8tc8NNmjLnGOfeFJO7yC8Pw+HQ6fT+A6Xosgue2b9/+Xh0Ogzt1UISXTqcv1mGl9PX1TRCRj+m8BHfogKgUkyZN6rfWnq/zCPbwff/uMAzfqAeGUz6fP6i5ufleAOWcf/nHQitxopIl7qa9q66urq/FfPna1ekdHR3/DMPwzXpguARBMKupqekvAGbosVJYay+w1sZZyUdEJYjTfqYeWqntqoxDod85xIdC171Cb/f3xTy8tm4sW7bskwDu0nlEPoALp0yZ8kAYhsfpweHW19c3wTn35ZaWllUAPhzj7BKqgq6urk+X2VZtr46OjqruoC5MzJ2l82LqoZXaTgsWLLAAfqvzUojIu3RWCSLSorNS+L7PawNRCXzf/02ZE877Tpw48bM6TBrf978NoJzzcQ2ABRdeeOFtAwMDe+vB4bB69eom59zXjDE3ARijxyPIhmF4WmEnzLCy1v5JZyU4PQzDU3RYruXLl6eam5t/BSDyohLn3A06IyqV53k3AviJziPoMMb80Tm3cOnSpcO+qMVae7bv+/cB2FePRbBlYGDggzokKibRRZxCG4sP6zyGSYXVJrcFQRC1rUTFbN26dYRz7pue590JYJIeL9GNhYsgEQ2BfD4/I8aW2P7Nmzdfp8Nals/nfx2z7cv+uVwucp9l+m+pVOpRAF/VeSOZPXt20NfXdzqASrRvmGaMucU5d1MQBOW05qiIIAhe5Zz7RXNz89MAPg2gTX+mTI89+OCDgQ4pnsLz6LtiXhN3Ostae7oOh8r8+fNnAYg6Mdf1xBNP3KbDWhYEQdxWOocOUfuODh2UwvO8tM6I6H9Za10+nz+vzIUwn8rlci/RYZJYa11XV9e7ADysxyI6OpPJPGqt/cSKFSuG7ToThuEJkydPfhjAJ8qdo3LOne/7/l91PhyefvrpWwFE7dQgxphfVHLeavny5akZM2ZcDiBOe9e+LVu2cP6JytLV1fWxMtqqodAl5cJZs2b9OZ/Pv1wPVkNh8d0SEbkCQKxFOTs5585vbm5eq3OiYsq6QVaD53lXAbhC5zEd63ne35xzN4dh+MZqbR/u7u4eZa391IgRI1YB+GgZ3/feXC73IR0SUeX4vh95Fw6AG8eOHdujw1pWOIgwVksvz/OG7FDoRvLss89eAuBJnTeS1tbWF3K53All9rjf1es9z7vXObfMWntaNdus9fb2jrPW/p9z7u+e5/0VwDkAhuLff92WLVteM2/evFAPUHye591RZls1iMil/f39cRfxRGKMiXMvu2b69OnlTHwmTiqVejjuJKfv+0OxGydWEccYM2yTq0S1Jp1OPw7gGzqPIJNKpb6jw6QZPXr09mw2+yYA6/RYRK0i8rVp06Y9aq196+LFi6O2lI6tsKjlT8aYPwGoROHsy8aYclb8V1ShPekSnZdghOd5t1RiF3lfX98eM2bMuBlA3Dah144ePXq7DomiGD169PYwDN8CYECPRfQq3/eXO+d+UK2zeNetW9dirf1Mc3PzCgBz9HgMPzfG/EaHRKUQ58pZVFgdmzdvbu/s7PwrgGl6rEyrAfw2DMMll1xyyfJC24WKWL16ddOkSZNeZ4yZB+AtAMrureuce78x5kc6Hw6F1RxRX/R7rLVn6rBeOede8H3/bzqvB0EQHOp53v06L+IuETlah0mydOlSf9asWc8B2EOPDcY5d7oxpm5a0OxkrX2fiMSZtOzdsmXLntU4I2j16tVNkydP7tf5YJxzHzLGVLW1UVxhGL7WGHMHgEq2qLtaRCrxAFo1+Xz+EN/374zTAqKILQCustZe88ILL9wxYcKEPv2BcuRyuQN93z9BRE4GMDvGWVtRWABfXLRo0YJKPs9EFQTBLM/zluq8iBtF5EQdJs3GjRvbxowZ83CZ7RNu8zzv+KFsi7tmzZrmiRMnro9aMLDWvt7zvLo7c9Fa+ykR+YrOS9C1atWqPSt5RpBz7mIAn9d5Mfl8fv90Ov0vnSdFLpeblkqlVui8iPtF5FU6pMrq7e0d19LSskHnRTwlIkN6uPpQW7duXcsee+zxKIB99FiprLXzPM+LMwFfVfl8fqbv+3cAGKHHYlrpnLu0t7f3l+3t7Zv1YLlWrlyZ2W+//U4WkffH3BmyO7/yPO/tQ3l/jSMIgsM9z4u1MA5ACODb3d3dF40YMWKrHhzM8uXLU4cccsg7ReTictrThWH4Wt/3oz7XDSnn3PcAnKfzIv6ftbacVos1ZdOmTXeOHz++V+fDzVp7joj8Qucx9QO4IgiCS1Op1IN6sFy9vb3jmpub3ykiHwKwpx6P6R9r1649atKkSZHmL+pBEASv9jzvLzov4nYR4Xmxu6iJIg4KEyGpVOpeAKP0WIVsBHC3c+4+59zD+Xz+seuvv/75Ulayrl69umnPPfecaozZ3xhzCIAjALwaQKv+bBmu8jxvXlIeSmIWcRpNTUxKxVGvRZwwDN9gjIm6Xbz3hRdeGJ/Eh6RydXd3d7a3t68DEHkFsHPufcaYy3ReafVexMGOX+9PAVRyd1PNFXHwn0LOzQDG6bEKyQG4H8BfnXMPWGsf7+np+dfIkSO36Q9qixcv9k488cQJ6XR6uogcJCKvBnAYgIn6s0Nkk7X2bZ7nxem9XlH1XMTBjvvE0caY28sprDrnPmyMGbJV3tbaM0Qk6lkwmx544IE9Z86cmdcDta6/v39SU1PT6jg74Z1zZxhjfq/zuJxzlwJ4v86LyefzL02n01GLJFXDIk5yNWoRBzuu1ycbY67VeQTPbdq0aXot7LYPguDIwjNAJecfcgBudc79MZfL3Vy4jsbS3d09qrW19WhjzIkATh2COZ0/LFu27K2zZ89OZCtZ59xfCvNDcW0F8PMwDH8z2OJjY4xks9mXeZ43R0TeCWCy/kxEfxeRirV1q5SYRZyGks/nD0in04ns6OCc+1qhdWIlPeicWxKG4Y1f/OIXH9zdz0gxPT09Y1paWt4kIm8G8MY48yCDeG5gYODw5ubmcs99r0ks4lRGzRRx8J8VyTcBaNJjQyQAsAHAZgDbAOxciZcufI0srNiv9Mpg7Z+bNm06PEkPkCzilKRmJqWiqtcijnPuNwCi7hb7vYjE3Z6eeM65qwHEOVzzb4WJ7CHVCEWc7du3j25ra1tRweJFTRZx8J8FHbcA2EuPDaHthWeBrQD6CpMatvAc0AFgbOFZYLgOHr9tYGDgHUnpq1zvRRzsuIZ8H0A5h5H25/P5Q4dqUr5wAPEbdV7EZSLyPh3WC+fcHQDiPIPcKiLH6zAu59zvCzv0IwmC4OBCa7hEYhEnuRq5iIMdP3PXAjhZ5xF8VUQ+rcMkKsyV/BFAux6rkOcAPADgEefc0865tc65zc65PudcDoBvjGkWkdEiMh7APiJyIICDCx1VIhfSS/SHBx544KwkL0IIw/BEY8z1Oo9pK4BHCr8f2wvPpO2Fgs1LAXTqvyEua+2bPM+7QefDjUWc4pJcxDHGSBiGPwPwDj1WIVsB/KNwrVrpnHuucK3qLlyrjDGmTUTaRWQigMkiMg3AoYW2jrEXag1iYz6ff+1QPfvXAhZxKqOmijj4z0r5q4eoj3wSrc5ms7Oampqe1QPDiUWcktTUpFQU9VjE6erq6hg1atS6qIfUWWvnFs7uqkthGM41xizWeSmCIDgolUr9U+eV1AhFHOz4c/ZWEfm1zmOq2SIOdqyq37OpqemqMlc01oN+59znfN//dlJ26aJBijgVaqu2/LHHHjus0mfQ9Pb2jm9paVkDwNdjg7HWvs7zvNt1Xi+ste8UkZ/qvAQ2m83uV84K9F05524BEPmMgyAIZgxFq5BKYREnuRq9iJPNZvdJp9OPRn2+30U+n88fUisTb4VJshsrOZGfcJctWbLkg6V0TxluZSwmGC63iMgJOkwCFnGKS3IRB/9pY/87AHP1WB3aFATB61Kp1EN6oJGwiFMZQ7UaYsh4nneTtfZNABKzK2UIrc3lcq9LWgGHqB6NHDlybowXvO3r1q27SYf1ZM2aNTcUVrNE5vt+JVuANbTC4Yd1d1ZFHM3Nzc+vWrVqNoBK9VOuRXfl8/lDjDHfSlIBp1GMHTu2x1r7LgDlfO9nTps2bYEOy9Xc3Hxm1AIOgBeuvvrqu3RYT7q7u5cUeqdHZTKZzLk6LEOs3fsiMpTnaRHVrUwm84xz7hKdR5BKpVLfM8YMxcrsivN9/6/5fP4wAIk9Q6tCrHPus57nvb8WCjjYMal+/i6dXZKuN5fLsUhCQ2b27NnBkiVLTgfwMz1WZ57L5/OzGr2AQ5VTc0Uc7Cjk3BYEwWwA9dxL8IlsNntEJpNZqQeIqPJE5G06K8F19X4o3d577z0AINZOHABnr1ixopJ9ZBtaLpf7QKGdV8ObOnVqVkTOdc6dU2h32ig2Oufe7XneMUleXdcIPM+7E8ClOo/o00EQHKHDcsS8ly2plUmwuApnW8VtZfOOhQsXVuqdKVYRZ4haexA1hMcff/zrAB7XeQRHB0EQtd3ysEmn00/29PQcVseLf7ZYa08xxny5lhaypNPpFc65C3WeRM658zkPRUNt3rx5oed57wZwSZkLo5LqbwMDA69Jp9OP6QGiuCr1QlJ1qVRqeX9//6sARG3ZUQtu6enpOaJSrRuIaHADAwOTAczWeTHW2it1Vo/CMPyVzko05sADD3yzDimeTCbztHPuCzpvZMaYy3O53CEA6noXAYA8gG91d3fvb4z5aS1NWtSzTZs2fRrA0zqPwPM875ebN2+uyPkF+Xz+pQBm6ryYRrmXWWvj3sv2nj9/fqVaOXTooBTOuVgH9BIRMH369Jy1tqxdBSLy9a1bt47QeVK1t7dvXrRo0Rudc58vPEPUi3uz2ewMz/Ou0wO1wPf9rwFI+q/968aYRt7tTlVkrXUiMt9aOxdAtx6vYT989tlnZzc3Nz+vB4jKUbNFHABoaWlZt2TJkmOdcwsKBw3Xurxz7gtLlix5Y3t7+2Y9SERDI51OnxXjerjt6aef/pMO69Ell1xyN4BYbR1FhC3VKujuu+/+f4VDZakgk8k843neMc65twFYp8drnAXwu3w+/1IR+eiIESNitTakoVGhtmpTOjs7/58O4/B9P84unHUXX3zxMh3WoyeeeOJPAGI9XxtjKnUva9JBiep6pxTRUPM87w4Av9F5BBNGjBixUIdJtmDBAmuM+WIYhocBeFiP15h+59ynly1bNruWF7paa11XV9dZAJbrsYS41PO8T+mQaKh5nnd1Pp9/JYB79ViN2WStnSciHyh0NCGqqKiTlokzb9680BizKAiCQwHco8dryENhGB5ujFlY7y0tiJImZvuZa6dOnVorfY3LsmDBAlvGi+9xAwMDe+mQ4pk9e3YQhuH7OKH336y1zhjzq66urgMAXAxgu/5MjQkB/C4IgpkicmY6na733vY1q0Jt1d4VhmFZuxYL7b7O0nkJFheu8XVv+vTpOQBxdx2dsn379tE6jKFZB6VwztXTSnqiYdHf3/+JMluwnpfP5w/WYdL5vv+Pxx577JXOuU/X6PPR9blc7iBjzFdnz54d6MFaM3r06O29vb0nJGxRlgNwked553G3Nw2XdDr95KJFi45yzn20Bs9AdwCu6Ovre6nneUv0IFGl1HwRZ6dUKvVPz/NmOefOrLGD/F5wzp23ZMmSV/i+/3c9SERDq1AAnqbzYhql/cxOQRDEbUPjpdPpd+iQ4vN9/34A39M57XgxFpELent79wPw1Rrclr8dwA/y+fw0ETmTh2DWhgq0VYMx5se9vb3jdV6q+fPnHw1gks6LCcOwoe5lZbQHzbS2tsYpkv1bodAW65w451xdn79HVA0tLS3rnHMX6DwC3/f97xtjau6MqunTp+eMMV8dGBg4EMCPaqSLyf3W2hNE5KR6O5+lra1t05YtW16bkNZqWwo7By5kAYeGW2EH4bf6+vqmFt53a+Fa9ZcwDI8Ukbe3tra+oAeJKqluijj4z0rc3y1btmx64bDjR/RnEmS9c+6zmzZtmmKM+QF33xAND8/z4uzC2fLEE0/cqsN6lkqlHgXwoM5LISLnVvBQaNoxaTw/bou7RtDW1rZJRD69ZcuWvZxzHwbwhP5MwjzonPu/LVu2TBKR87jzprZUqK3a2JaWlp/EnRw0xsS5l6255JJLar1tRSTpdPo+AE/pvBQi8i6dRfHe9763WCu13a4wD4KgT2dEFN1VV131gzJ3QBwRBEHNLk5qbm5+XkTen8vlDgDw/QSudncA7rDWnuh53qs9z7tFf6BedHZ2dnue92bn3EcA9OrxKvljNps92PO8q/QA0XBqbW3dICIfyuVyBwL4TgKvVQCwzFr7JhE5zPf9hnqepuFTl5Nqs2fPDowxl4vIy8MwPArAL8rcOl0pIYDbnHNnPvbYY3sbY748duzYJF6MiBrC8uXLUwDO1HkJrim0ZWkozrm4K5j3LawSpwopTBqXdUhvI+js7Ow2xnzH87xpYRgeUVjRtUF/bpg8CeArQRAcIiIzjDHf7ezsrLWdQ1RQaKv2A51H9KYgCN6jw2I2bNjQCmCuzkvQMK3UdiqsMv61zkt0UGH3bixPPvlkbpDdgT+11s7RYYF74oknunRIRNHNmzcvDMPwA4Uz52IRka90d3d36ryWZDKZZ0Tk/O7u7r0KRYThPqNlA4Bv5/P5l4nIsZ7n3dgIu0IKi5C/nc1mpwO4vIrtkv9srT1eRN7c1NT0nB4kSopMJvO0iHx4+/btexfarA33tWo7gJ+EYXioiMz2PO8G/QGioSTO1f29EQCwZs2a5gkTJhxnjDkJwHEA9tafGSK9AG53zt3U399/dWtra1Imj8qydOlSf9asWXfrnP7LfSLyMR3Wg1wud2Aqlfq5zotYLiKJmnQOguBQz/O+q/NiwjD8jO/7S3Ve7/r7+yc2NTUt1nkpnHN/NMZ8SeflWrFiRXratGmRfi+std/wPC/Wf0fSOOe+CyDqpOJSEfmMDhvF0qVL/SOOOOI1nuedAOD1AGZWaVFLD4BlzrnbwzC8ubC7re7k8/lDfN+PekbMvSLycR3Wmo0bN7aNGTNmCYAOPRZBb3d397wRI0Zs1QO7E4bha+NcX8Mw/FAjtvLN5XL7p1KpX+q8FM653xpjvqPzUq1cuTIzadKk8b7vTzTG7ANgknNuled5V+Vyuem7uS5sFpExOkySbDa7Tzqd/q3Oi3hMRN6pQ6qs7u7uUe3t7TfqvIjnRSROYbhmOOcuAXCMzkvlnLvcGBP1XpdouVxuuu/7p4jIGwG8GoCvP1NhTwG43lp7wz333HNHPZx3U65sNjslnU6/D8DZACbo8TJtB3B1GIY/9H3/Pj1YS6y1n6j3a1S5stns6U1NTXXZtSGXy03zff/NInICgMPjtqqNYCOAm6y1f1y3bt2NkyZNYovbGPL5/Et93/+Jzov4u4h8SIeNrGGKOFo2m90nlUq9RkReCeBlhTMxJpY5kbMdwGMAHnXOLbfW/uXhhx9+aObMmTyMlIiIKIE2b97cPnLkyFeIyKtEZAaA/QFMLXMifkvheeAR59zDYRjed++99z7MCQoi2p3u7u7O9vb2HwGYDuAlAFKFoXtF5Aj1cSKiIVN4NjrMGHM4gJcDOAjAPmUUdl4A8DCAfzrn/p7L5e6p1wnmSli8eLF3yimnHFFYcHQEgBkxnkv7Cq2w77HW3rVmzZo799577wH9IaJatnHjxrbOzs5DC+9xhwI4oPAe16I/W6KBQreEh5xzfwvD8J4vfvGLDzfaznVKroYt4ryYlStXZiZPnjzZGDNBRMaIyMjCzbJllweWXOGrD8BW59xWa+3z/f39azo6OtjqgIiIqA709vaOS6fTexpjxonIOAAjAGQKq73ShfMrcgD6AWxxzm221q7r6+t7NsouCiIibfny5amXvexlL/E8bzqAXs/zbtKfISKqphUrVqSnTJky2ff9vURkLIBOAG2FZyL/RZ6LNllrn9+6deszbCFfHmOM9Pb2TkilUpONMZML3/umXeapcoUd35uttc8HQfD0V77ylTWceKZGtHDhQvPpT396ou/7O+d1xwJoL/zMNBUW7geFgs0259xm59yGfD7/3Fe/+tXn+XNDScYiDhERERERERERERERUQKV0zqMiIiIiIiIiIiIiIiIhgiLOERERERERERERERERAnEIg4REREREREREREREVECsYhDRERERERERERERESUQCziEBERERERERERERERJRCLOERERERERERERERERAnEIg4REREREREREREREVECsYhDRERERERERERERESUQCziEBERERERERERERERJRCLOERERERERERERERERAnEIg4REREREREREREREVECsYhDRERERERERERERESUQCziEBERERERERERERERJRCLOERERERERERERERERAnEIg4REREREREREREREVECsYhDRERERERERERERESUQCziEBERERERERERERERJRCLOERERERERERERERERAnEIg4REREREREREREREVECsYhDRERERERERERERESUQCziEBERERERERERERERJRCLOERERERERERERERERAnEIg4REREREREREREREVECsYhDRERERERERERERESUQCziEBERERERERERERERJRCLOERERERERERERERERAnEIg4REREREREREREREVECsYhDRERERERERERERESUQCziEBERERERERERERERJRCLOERERERERERERERERAnEIg4REREREREREREREVECsYhDRERERERERERERESUQCziEBERERERERERERERJRCLOERERERERERERERERAnEIg4REREREREREREREVECsYhDRERERERERERERESUQCziEBERERERERERERERJRCLOERERERERERERERERAnEIg4REREREREREREREVECsYhDRERERERERERERESUQP8fi7GzHsHIRY0AAAAASUVORK5CYII=";
-
-const APPS_SCRIPT_CODE = "// Setangkai Project - Cloud Database (Google Apps Script)\n" +
-"// Cara pakai ada di halaman Pengaturan & Backup aplikasi.\n" +
-"\n" +
-"function doGet(e) {\n" +
-"  var sheet = getDataSheet_();\n" +
-"  var raw = sheet.getRange('A1').getValue();\n" +
-"  return jsonOutput_({ok: true, data: raw ? JSON.parse(raw) : null});\n" +
-"}\n" +
-"\n" +
-"function doPost(e) {\n" +
-"  try {\n" +
-"    var body = e.postData.contents;\n" +
-"    var data = JSON.parse(body); // validasi JSON\n" +
-"    var sheet = getDataSheet_();\n" +
-"    sheet.getRange('A1').setValue(body);\n" +
-"    sheet.getRange('B1').setValue(new Date());\n" +
-"    writeRingkasan_(data);\n" +
-"    syncCalendar_(data);\n" +
-"    return jsonOutput_({ok: true});\n" +
-"  } catch (err) {\n" +
-"    return jsonOutput_({ok: false, error: String(err)});\n" +
-"  }\n" +
-"}\n" +
-"\n" +
-"// Membuat/mengupdate/menghapus event di Google Calendar (kalender utama akun\n" +
-"// pemilik script ini) supaya selalu sinkron dengan data event di aplikasi.\n" +
-"// Kalau ada error di bagian kalender, data tetap tersimpan (tidak ikut gagal).\n" +
-"function syncCalendar_(data) {\n" +
-"  try {\n" +
-"    var cal = CalendarApp.getDefaultCalendar();\n" +
-"    var props = PropertiesService.getScriptProperties();\n" +
-"    var mapRaw = props.getProperty('calendarMap');\n" +
-"    var map = mapRaw ? JSON.parse(mapRaw) : {};\n" +
-"    var events = data.events || [];\n" +
-"    var seenIds = {};\n" +
-"    events.forEach(function(ev) {\n" +
-"      if (!ev.date) return; // event tanpa tanggal dilewati\n" +
-"      seenIds[ev.id] = true;\n" +
-"      var title = (ev.name || 'Event') + ' - ' + (ev.acara || ev.job || 'Acara');\n" +
-"      var desc = 'Job: ' + (ev.job || '-') +\n" +
-"        '\\nLokasi: ' + (ev.venue || '-') +\n" +
-"        '\\nKoordinator: ' + (ev.coordinator || '-') +\n" +
-"        '\\nStatus: ' + (ev.status || '-') +\n" +
-"        (ev.notes ? ('\\nCatatan: ' + ev.notes) : '');\n" +
-"      var location = ev.venue || '';\n" +
-"      var range = parseWaktuAcara_(ev.date, ev.waktuAcara);\n" +
-"      var calEventId = map[ev.id];\n" +
-"      var calEvent = null;\n" +
-"      if (calEventId) {\n" +
-"        try { calEvent = cal.getEventById(calEventId); } catch (e2) { calEvent = null; }\n" +
-"      }\n" +
-"      if (calEvent) {\n" +
-"        calEvent.setTitle(title);\n" +
-"        calEvent.setDescription(desc);\n" +
-"        calEvent.setLocation(location);\n" +
-"        if (range.allDay) {\n" +
-"          calEvent.setAllDayDate(range.start);\n" +
-"        } else {\n" +
-"          calEvent.setTime(range.start, range.end);\n" +
-"        }\n" +
-"      } else {\n" +
-"        var newEvent;\n" +
-"        if (range.allDay) {\n" +
-"          newEvent = cal.createAllDayEvent(title, range.start, {description: desc, location: location});\n" +
-"        } else {\n" +
-"          newEvent = cal.createEvent(title, range.start, range.end, {description: desc, location: location});\n" +
-"        }\n" +
-"        map[ev.id] = newEvent.getId();\n" +
-"      }\n" +
-"    });\n" +
-"    // Hapus event kalender yang datanya sudah dihapus dari aplikasi\n" +
-"    Object.keys(map).forEach(function(id) {\n" +
-"      if (!seenIds[id]) {\n" +
-"        try {\n" +
-"          var oldEvent = cal.getEventById(map[id]);\n" +
-"          if (oldEvent) oldEvent.deleteEvent();\n" +
-"        } catch (e3) { /* event sudah tidak ada, abaikan */ }\n" +
-"        delete map[id];\n" +
-"      }\n" +
-"    });\n" +
-"    props.setProperty('calendarMap', JSON.stringify(map));\n" +
-"    logCalendarStatus_('OK', '');\n" +
-"  } catch (err) {\n" +
-"    // Jangan gagalkan penyimpanan data hanya karena kalender bermasalah,\n" +
-"    // tapi catat errornya di sheet 'Database' kolom C1 supaya bisa dicek.\n" +
-"    logCalendarStatus_('ERROR', String(err));\n" +
-"  }\n" +
-"}\n" +
-"\n" +
-"function logCalendarStatus_(status, message) {\n" +
-"  try {\n" +
-"    var sheet = getDataSheet_();\n" +
-"    sheet.getRange('C1').setValue('Kalender: ' + status);\n" +
-"    sheet.getRange('D1').setValue(message);\n" +
-"    sheet.getRange('E1').setValue(new Date());\n" +
-"  } catch (e4) { /* abaikan */ }\n" +
-"}\n" +
-"\n" +
-"// Jalankan fungsi ini SATU KALI secara manual dari editor Apps Script\n" +
-"// (tombol \\\"Run\\\", pilih fungsi testCalendarSync, lalu klik Run) untuk\n" +
-"// memicu dialog izin akses Google Calendar. Deploy sebagai Web App TIDAK\n" +
-"// memunculkan dialog izin ini, jadi langkah manual ini wajib dilakukan\n" +
-"// sekali di awal (atau setiap kali menambah scope/izin baru).\n" +
-"function testCalendarSync() {\n" +
-"  var cal = CalendarApp.getDefaultCalendar();\n" +
-"  Logger.log('Kalender aktif: ' + cal.getName());\n" +
-"  var ev = cal.createEvent('Tes Setangkai Project', new Date(), new Date(new Date().getTime() + 60*60*1000));\n" +
-"  Logger.log('Berhasil membuat event tes, id: ' + ev.getId());\n" +
-"  ev.deleteEvent();\n" +
-"  Logger.log('Event tes sudah dihapus lagi. Kalau sampai sini tanpa error, izin Calendar sudah OK.');\n" +
-"}\n" +
-"\n" +
-"// Membaca jam acara dari format \\\"07.00 - 17.00\\\" (kalau ada). Kalau tidak\n" +
-"// ada/format tidak dikenali, dibuat event sepanjang hari (all-day).\n" +
-"function parseWaktuAcara_(dateStr, waktuAcara) {\n" +
-"  var baseDate = new Date(dateStr + 'T00:00:00');\n" +
-"  if (!waktuAcara) return {allDay: true, start: baseDate};\n" +
-"  var m = String(waktuAcara).match(/(\\d{1,2})[.:](\\d{2})\\s*-\\s*(\\d{1,2})[.:](\\d{2})/);\n" +
-"  if (!m) return {allDay: true, start: baseDate};\n" +
-"  var start = new Date(dateStr + 'T00:00:00');\n" +
-"  start.setHours(parseInt(m[1], 10), parseInt(m[2], 10), 0, 0);\n" +
-"  var end = new Date(dateStr + 'T00:00:00');\n" +
-"  end.setHours(parseInt(m[3], 10), parseInt(m[4], 10), 0, 0);\n" +
-"  if (end <= start) end = new Date(start.getTime() + 2 * 60 * 60 * 1000);\n" +
-"  return {allDay: false, start: start, end: end};\n" +
-"}\n" +
-"\n" +
-"function jsonOutput_(obj) {\n" +
-"  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);\n" +
-"}\n" +
-"\n" +
-"function getDataSheet_() {\n" +
-"  var ss = SpreadsheetApp.getActiveSpreadsheet();\n" +
-"  var sheet = ss.getSheetByName('Database');\n" +
-"  if (!sheet) {\n" +
-"    sheet = ss.insertSheet('Database');\n" +
-"    sheet.getRange('A1').setValue('');\n" +
-"  }\n" +
-"  return sheet;\n" +
-"}\n" +
-"\n" +
-"function writeRingkasan_(data) {\n" +
-"  var ss = SpreadsheetApp.getActiveSpreadsheet();\n" +
-"  var sheet = ss.getSheetByName('Ringkasan Keuangan');\n" +
-"  if (!sheet) sheet = ss.insertSheet('Ringkasan Keuangan');\n" +
-"  sheet.clear();\n" +
-"  var headers = ['No Invoice','Nama Klien','Acara','Tanggal','Lokasi','Job','Budget','Foto','Video','FD','Cetak','Crew','Transport','Dll','Kas'];\n" +
-"  sheet.appendRow(headers);\n" +
-"  var events = (data.events || []).slice().sort(function(a, b) {\n" +
-"    return new Date(a.date || 0) - new Date(b.date || 0);\n" +
-"  });\n" +
-"  var finance = data.finance || {};\n" +
-"  var costKeys = ['biayaFoto','biayaVideo','biayaFD','biayaCetak','biayaCrew','biayaTransport','biayaLain'];\n" +
-"  events.forEach(function(ev) {\n" +
-"    var f = finance[ev.id] || {};\n" +
-"    var biaya = 0;\n" +
-"    costKeys.forEach(function(k) { biaya += Number(f[k]) || 0; });\n" +
-"    var kas = (Number(f.budget) || 0) - biaya;\n" +
-"    sheet.appendRow([\n" +
-"      ev.invoiceNo || '', ev.name || '', ev.acara || '', ev.date || '', ev.venue || '', ev.job || '',\n" +
-"      Number(f.budget) || 0, Number(f.biayaFoto) || 0, Number(f.biayaVideo) || 0, Number(f.biayaFD) || 0,\n" +
-"      Number(f.biayaCetak) || 0, Number(f.biayaCrew) || 0, Number(f.biayaTransport) || 0, Number(f.biayaLain) || 0, kas\n" +
-"    ]);\n" +
-"  });\n" +
-"  sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');\n" +
-"  sheet.autoResizeColumns(1, headers.length);\n" +
-"}\n";
-
-function escapeHtml(s){
-  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-function seedData(){
-  return {
-    company: { name:"Setangkai Project", tagline:"Wedding Photography & Videography Vendor", social:"@setangkaiproject", address:"", phone:"0899-0121-222", email:"setangkaiproject@gmail.com", bank:"BCA\n7391678174\na/n Aditya Giri Rahmanda", terms:"Uang muka IDR 500K untuk perjanjian tanggal\nMelakukan pelunasan H-7 sebelum acara\nPembatalan acara uang tidak dapat dikembalikan\nSyarat dan ketentuan berlaku" },
-    counters: { event:15, team:6, assign:6, package:3 },
-    packages: [
-      {id:"PKG-001", name:"Lavatera Wedding", price:4300000, items:"1 Photographer\n1 Videographer\n8 Hours Service\nUnlimited Photoshoot\n250+ Edited Photo\nCinematic Video 2 - 3 Minutes\nReels Video 1 Minutes\nAll File in Flashdisk + Google Drive\n1 Exclusive Wedding Album"},
-      {id:"PKG-002", name:"Silver Wedding", price:3500000, items:"1 Photographer\n1 Videographer\n6 Hours Service\n150+ Edited Photo\nCinematic Video 2 - 3 Minutes\nAll File in Flashdisk"},
-    ],
-    events: [
-      {id:"EV-001", invoiceNo:"", name:"Adara Project (Ana)", clientPhone:"", pasangan:"", acara:"Wedding", job:"Foto Video", packageName:"", packageItems:"", waktuAcara:"", date:"2026-11-07", venue:"Kaldera, Depok", coordinator:"", status:"Selesai", notes:""},
-      {id:"EV-002", invoiceNo:"", name:"Adara Project (Zelva)", clientPhone:"", pasangan:"", acara:"Wedding", job:"Foto Video", packageName:"", packageItems:"", waktuAcara:"", date:"2026-11-07", venue:"Kayu Ilir Ilir, Depok", coordinator:"", status:"Selesai", notes:""},
-      {id:"EV-003", invoiceNo:"SP000144", name:"Dona", clientPhone:"", pasangan:"", acara:"Wedding", job:"Foto Video", packageName:"", packageItems:"", waktuAcara:"", date:"2026-11-14", venue:"Sasono Mulyo, Depok", coordinator:"", status:"DP Diterima", notes:""},
-      {id:"EV-004", invoiceNo:"SP000148", name:"Kak Azki", clientPhone:"0895-3957-91017", pasangan:"Azki & Rama", acara:"Wedding", job:"Foto Video", packageName:"Lavatera Wedding", packageItems:"1 Photographer\n1 Videographer\n8 Hours Service\nUnlimited Photoshoot\n250+ Edited Photo\nCinematic Video 2 - 3 Minutes\nReels Video 1 Minutes\nAll File in Flashdisk + Google Drive\n1 Exclusive Wedding Album", waktuAcara:"07.00 - 17.00", date:"2026-11-22", venue:"Cluster Alamanda", coordinator:"", status:"DP Diterima", notes:""},
-      {id:"EV-005", invoiceNo:"", name:"Risma", clientPhone:"", pasangan:"", acara:"Wedding", job:"Foto Video", packageName:"", packageItems:"", waktuAcara:"", date:"2026-11-28", venue:"Kayu Ilir Ilir, Depok", coordinator:"", status:"Booking Baru", notes:""},
-      {id:"EV-006", invoiceNo:"SP000136", name:"Bayu Idhal", clientPhone:"", pasangan:"", acara:"Wedding + Mini Studio", job:"Foto Video Studio", packageName:"", packageItems:"", waktuAcara:"", date:"2026-11-29", venue:"Alamanda", coordinator:"", status:"DP Diterima", notes:""},
-      {id:"EV-007", invoiceNo:"SP000139", name:"Vio", clientPhone:"", pasangan:"", acara:"Engagement", job:"Foto Video", packageName:"", packageItems:"", waktuAcara:"", date:"2026-12-19", venue:"Brits Hotel Puri, Jakarta Barat", coordinator:"", status:"DP Diterima", notes:""},
-      {id:"EV-008", invoiceNo:"SP000117", name:"Aulia", clientPhone:"", pasangan:"", acara:"Wedding", job:"Foto Video Liputan", packageName:"", packageItems:"", waktuAcara:"", date:"2026-12-26", venue:"Bekasi, Tambun", coordinator:"", status:"DP Diterima", notes:""},
-      {id:"EV-009", invoiceNo:"SP000121", name:"Adam", clientPhone:"", pasangan:"", acara:"Engagement", job:"Foto Video", packageName:"", packageItems:"", waktuAcara:"", date:"2026-12-26", venue:"Aroem, Bekasi", coordinator:"", status:"DP Diterima", notes:""},
-      {id:"EV-010", invoiceNo:"", name:"Adin", clientPhone:"", pasangan:"", acara:"Engagement", job:"Foto Video", packageName:"", packageItems:"", waktuAcara:"", date:"2026-12-26", venue:"Ammarosa", coordinator:"", status:"Booking Baru", notes:""},
-    ],
-    team: [
-      {id:"TM-001", name:"Aji Pratama", role:"Fotografer", phone:"0812-3456-7890", rate:1500000, active:true, notes:"Lead photographer"},
-      {id:"TM-002", name:"Nina Kusuma", role:"Fotografer", phone:"0813-1111-2222", rate:1200000, active:true, notes:""},
-      {id:"TM-003", name:"Rian Saputra", role:"Videografer", phone:"0814-2222-3333", rate:1800000, active:true, notes:""},
-      {id:"TM-004", name:"Dewi Lestari", role:"Editor", phone:"0815-3333-4444", rate:800000, active:true, notes:"Editing foto & video"},
-      {id:"TM-005", name:"Fajar Nugroho", role:"Asisten", phone:"0816-4444-5555", rate:500000, active:true, notes:""},
-    ],
-    assignments: [
-      {id:"AS-001", eventId:"EV-001", teamId:"TM-001", role:"Fotografer", fee:1500000, paid:false},
-      {id:"AS-002", eventId:"EV-003", teamId:"TM-002", role:"Fotografer", fee:1200000, paid:false},
-    ],
-    finance: {
-      "EV-001": {budget:4500000, dp:4500000, pelunasan:0, biayaFoto:2650000, biayaVideo:1400000, biayaFD:100000, biayaCetak:350000, biayaCrew:0, biayaTransport:0, biayaLain:0},
-      "EV-002": {budget:3500000, dp:2800000, pelunasan:0, biayaFoto:1100000, biayaVideo:1300000, biayaFD:100000, biayaCetak:300000, biayaCrew:0, biayaTransport:0, biayaLain:0},
-      "EV-003": {budget:4500000, dp:1500000, pelunasan:0, biayaFoto:2050000, biayaVideo:1400000, biayaFD:100000, biayaCetak:350000, biayaCrew:0, biayaTransport:100000, biayaLain:0},
-      "EV-004": {budget:4300000, dp:500000, pelunasan:0, biayaFoto:2050000, biayaVideo:1300000, biayaFD:100000, biayaCetak:350000, biayaCrew:0, biayaTransport:0, biayaLain:0},
-      "EV-005": {budget:3500000, dp:1000000, pelunasan:0, biayaFoto:1100000, biayaVideo:1200000, biayaFD:0, biayaCetak:300000, biayaCrew:0, biayaTransport:0, biayaLain:0},
-      "EV-006": {budget:5500000, dp:2000000, pelunasan:0, biayaFoto:1300000, biayaVideo:1300000, biayaFD:100000, biayaCetak:400000, biayaCrew:1350000, biayaTransport:0, biayaLain:550000},
-      "EV-007": {budget:2800000, dp:1000000, pelunasan:0, biayaFoto:1200000, biayaVideo:1100000, biayaFD:0, biayaCetak:0, biayaCrew:0, biayaTransport:0, biayaLain:0},
-      "EV-008": {budget:5700000, dp:2000000, pelunasan:0, biayaFoto:1300000, biayaVideo:2100000, biayaFD:0, biayaCetak:500000, biayaCrew:0, biayaTransport:0, biayaLain:1300000},
-      "EV-009": {budget:2800000, dp:1000000, pelunasan:0, biayaFoto:800000, biayaVideo:800000, biayaFD:0, biayaCetak:0, biayaCrew:0, biayaTransport:0, biayaLain:700000},
-      "EV-010": {budget:2300000, dp:0, pelunasan:0, biayaFoto:1300000, biayaVideo:1000000, biayaFD:0, biayaCetak:0, biayaCrew:0, biayaTransport:0, biayaLain:0},
-    }
-  };
-}
-
-let state = null;
-let currentView = "dashboard";
-let sidebarOpen = false;
-let searchTerm = "";
-let statusFilter = "Semua";
-let invoiceEventId = null;
-let cloudUrl = "";
-let syncStatus = "idle"; // idle | syncing | synced | error | offline
-let lastSyncAt = null;
-
-function syncStatusText(){
-  if(!cloudUrl) return "Sinkron cloud: belum disambungkan";
-  if(syncStatus==='syncing') return "Menyinkronkan...";
-  if(syncStatus==='synced') return "Tersinkron ke cloud" + (lastSyncAt? " · "+lastSyncAt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : "");
-  if(syncStatus==='error') return "Gagal sinkron ke cloud";
-  if(syncStatus==='offline') return "Cloud tidak terjangkau (pakai data lokal)";
-  return "Sinkron cloud: belum disambungkan";
-}
-function syncDotClass(){
-  if(!cloudUrl) return "";
-  if(syncStatus==='syncing') return "syncing";
-  if(syncStatus==='synced') return "ok";
-  if(syncStatus==='error' || syncStatus==='offline') return "err";
-  return "";
-}
-// URL Web App Google Apps Script bawaan — supaya siapa pun yang buka aplikasi
-// ini (di perangkat/browser mana pun) otomatis tersambung ke database yang sama
-// tanpa perlu isi apa pun di halaman Pengaturan.
-const DEFAULT_CLOUD_URL = "https://script.google.com/macros/s/AKfycbxQB4d609udJy6VCFjc87UtTtv8YeAvigYm0i5c_pj8nRVRunBqqOaUsPQZv7vt-i5p/exec";
-
-function loadCloudUrl(){
-  try{
-    const saved = localStorage.getItem('setangkai-cloud-url');
-    if(saved === '__NONE__') return ""; // pengguna sengaja memutus sambungan di browser ini
-    if(saved) return saved;
-  }catch(e){ /* localStorage tidak tersedia */ }
-  return DEFAULT_CLOUD_URL || "";
-}
-function saveCloudUrl(url){
-  try{ localStorage.setItem('setangkai-cloud-url', url ? url : '__NONE__'); }catch(e){}
-}
-async function fetchRemoteState(url){
-  const res = await fetch(url, {method:'GET'});
-  if(!res.ok) throw new Error('HTTP '+res.status);
-  const json = await res.json();
-  if(!json.ok) throw new Error(json.error || 'Respons tidak valid');
-  return json.data;
-}
-async function pushRemoteState(url, data){
-  const res = await fetch(url, {
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'}, // hindari CORS preflight di Apps Script
-    body: JSON.stringify(data)
-  });
-  if(!res.ok) throw new Error('HTTP '+res.status);
-  const json = await res.json();
-  if(!json.ok) throw new Error(json.error || 'Gagal menyimpan ke cloud');
-  return true;
-}
-
-const STORAGE_KEY = "setangkai-data-v4";
-
-async function loadState(){
-  cloudUrl = loadCloudUrl();
-  if(cloudUrl){
-    try{
-      syncStatus = 'syncing';
-      const remote = await fetchRemoteState(cloudUrl);
-      if(remote && Array.isArray(remote.events)){
-        syncStatus = 'synced'; lastSyncAt = new Date();
-        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(remote)); }catch(e){}
-        return remote;
-      }
-      syncStatus = 'synced'; lastSyncAt = new Date();
-      // sheet cloud kosong -> lanjut pakai data lokal, akan otomatis terunggah saat tersimpan berikutnya
-    }catch(e){
-      console.error('Sinkron awal gagal:', e);
-      syncStatus = 'offline';
-    }
-  }
-  // 1) coba penyimpanan bawaan Claude (kalau file ini dibuka lewat Claude)
-  try{
-    const res = await window.storage.get(STORAGE_KEY, false);
-    if(res && res.value){ return JSON.parse(res.value); }
-  }catch(e){ /* tidak tersedia / belum ada data -> lanjut cek localStorage */ }
-  // 2) fallback: localStorage browser (dipakai saat file dibuka langsung di browser)
-  try{
-    const local = localStorage.getItem(STORAGE_KEY);
-    if(local) return JSON.parse(local);
-  }catch(e){ /* localStorage tidak tersedia (mode private/incognito, dsb) */ }
-  // 3) belum ada data sama sekali -> mulai dari data contoh
-  const seed = seedData();
-  await persistState(seed);
-  return seed;
-}
-
-async function persist(){
-  await persistState(state);
-}
-
-async function persistState(data){
-  const json = JSON.stringify(data);
-  let savedSomewhere = false;
-  try{
-    const r = await window.storage.set(STORAGE_KEY, json, false);
-    if(r) savedSomewhere = true;
-  }catch(e){ /* penyimpanan bawaan Claude tidak tersedia di konteks ini */ }
-  try{
-    localStorage.setItem(STORAGE_KEY, json);
-    savedSomewhere = true;
-  }catch(e){ /* localStorage tidak tersedia */ }
-  if(cloudUrl){
-    try{
-      syncStatus = 'syncing';
-      await pushRemoteState(cloudUrl, data);
-      syncStatus = 'synced'; lastSyncAt = new Date();
-      savedSomewhere = true;
-    }catch(e){
-      console.error('Sinkron ke cloud gagal:', e);
-      syncStatus = 'error';
-      showToast('Tersimpan di perangkat ini, tapi gagal sinkron ke cloud.');
-    }
-  }
-  if(!savedSomewhere){
-    console.error("Gagal menyimpan data di mana pun.");
-    showToast("Gagal menyimpan data. Gunakan tombol Unduh Backup agar data tidak hilang.");
-  }
-}
-
-async function connectCloud(){
-  const input = document.getElementById('cloud-url-input');
-  const url = input.value.trim();
-  if(!url || !url.startsWith('http')){ showToast('URL Web App tidak valid'); return; }
-  syncStatus = 'syncing'; render();
-  try{
-    const remote = await fetchRemoteState(url);
-    if(remote && Array.isArray(remote.events) && remote.events.length){
-      const useRemote = confirm('Ditemukan data yang sudah ada di cloud.\n\nKlik OK untuk MEMAKAI data cloud (menimpa data di perangkat ini).\nKlik Cancel untuk MENGUNGGAH data perangkat ini ke cloud (menimpa data cloud).');
-      if(useRemote){
-        state = remote;
-        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
-      } else {
-        await pushRemoteState(url, state);
-      }
-    } else {
-      await pushRemoteState(url, state);
-    }
-    saveCloudUrl(url);
-    cloudUrl = url;
-    syncStatus = 'synced'; lastSyncAt = new Date();
-    showToast('Berhasil tersambung ke cloud');
-  }catch(e){
-    console.error(e);
-    syncStatus = 'error';
-    showToast('Gagal terhubung. Cek URL & pastikan deployment diakses "Anyone".');
-  }
-  render();
-}
-function disconnectCloud(){
-  if(!confirm('Putuskan sinkronisasi cloud? Data tetap aman tersimpan di perangkat ini.')) return;
-  saveCloudUrl('');
-  cloudUrl = '';
-  syncStatus = 'idle';
-  showToast('Sinkronisasi cloud dinonaktifkan di perangkat ini');
-  render();
-}
-async function syncNow(){
-  if(!cloudUrl){ showToast('Belum tersambung ke cloud'); return; }
-  syncStatus = 'syncing'; render();
-  try{
-    const remote = await fetchRemoteState(cloudUrl);
-    if(remote && Array.isArray(remote.events)){
-      state = remote;
-      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
-    }
-    await pushRemoteState(cloudUrl, state);
-    syncStatus = 'synced'; lastSyncAt = new Date();
-    showToast('Sinkron berhasil');
-  }catch(e){
-    console.error(e);
-    syncStatus = 'error';
-    showToast('Sinkron gagal — cek koneksi internet / URL');
-  }
-  render();
-}
-async function copyScriptCode(){
-  try{
-    await navigator.clipboard.writeText(APPS_SCRIPT_CODE);
-    showToast('Kode disalin ke clipboard');
-  }catch(e){
-    showToast('Gagal menyalin otomatis — blok teks lalu salin manual (Ctrl+C)');
-  }
-}
-
-function fmtMoney(n){
-  n = Number(n)||0;
-  return "Rp " + n.toLocaleString('id-ID');
-}
-function fmtDate(d){
-  if(!d) return "-";
-  const dt = new Date(d+"T00:00:00");
-  if(isNaN(dt)) return d;
-  return dt.toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'});
-}
-function fmtDay(d){
-  if(!d) return "";
-  const dt = new Date(d+"T00:00:00");
-  if(isNaN(dt)) return "";
-  return dt.toLocaleDateString('id-ID', {weekday:'long'});
-}
-function monthKey(d){
-  if(!d) return "Tanpa Tanggal";
-  const dt = new Date(d+"T00:00:00");
-  if(isNaN(dt)) return "Tanpa Tanggal";
-  return dt.toLocaleDateString('id-ID', {month:'long', year:'numeric'});
-}
-function uid(prefix, num){ return prefix + "-" + String(num).padStart(3,'0'); }
-
-function getFinance(eventId){
-  return state.finance[eventId] || {budget:0, dp:0, pelunasan:0, biayaFoto:0, biayaVideo:0, biayaFD:0, biayaCetak:0, biayaCrew:0, biayaTransport:0, biayaLain:0};
-}
-function teamFeeTotal(eventId){
-  return state.assignments.filter(a=>a.eventId===eventId).reduce((s,a)=>s+Number(a.fee||0),0);
-}
-function eventTotals(eventId){
-  const f = getFinance(eventId);
-  const diterima = Number(f.dp||0) + Number(f.pelunasan||0);
-  const budget = Number(f.budget||0);
-  const piutang = budget - diterima;
-  const biaya = COST_FIELDS.reduce((s,c)=> s + Number(f[c.key]||0), 0);
-  const kas = budget - biaya;
-  return {diterima, piutang, biaya, kas, budget};
-}
-function eventById(id){ return state.events.find(e=>e.id===id); }
-function teamById(id){ return state.team.find(t=>t.id===id); }
-
-function groupByMonth(list){
-  const groups = {};
-  const order = [];
-  list.forEach(item=>{
-    const key = monthKey(item.date);
-    if(!groups[key]){ groups[key]=[]; order.push(key); }
-    groups[key].push(item);
-  });
-  return order.map(key=>({key, items:groups[key]}));
-}
-
-function showToast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(showToast._tm);
-  showToast._tm = setTimeout(()=>t.classList.remove('show'), 2200);
-}
-
-/* ---------------- Render root ---------------- */
 function render(){
   const app = document.getElementById('app');
-  app.innerHTML = `
-    <div class="sidebar-scrim ${sidebarOpen?'open':''}" onclick="closeSidebar()"></div>
-    ${renderSidebar()}
-    <div class="main">
-      ${renderTopbar()}
-      <div class="content">${renderView()}</div>
-    </div>
-  `;
-}
+  if(screen === 'welcome') app.innerHTML = renderWelcome();
+  else if(screen === 'form') app.innerHTML = renderForm();
+  else app.innerHTML = renderSuccess();
 
-function renderSidebar(){
-  const items = [
-    {id:'dashboard', label:'Dashboard', icon:ICONS.dashboard},
-    {id:'jadwal', label:'Jadwal Event', icon:ICONS.calendar},
-    {id:'Package', label:'Package', icon:ICONS.box},
-    {id:'keuangan', label:'Keuangan', icon:ICONS.money},
-    {id:'tim', label:'Tim & Freelancer', icon:ICONS.team},
-    {id:'penugasan', label:'Penugasan Tim', icon:ICONS.assign},
-    {id:'invoice', label:'Invoice', icon:ICONS.invoice},
-    {id:'pengaturan', label:'Pengaturan & Backup', icon:ICONS.settings},
-  ];
-  return `
-    <div class="sidebar ${sidebarOpen?'open':''}">
-      <div class="brand">
-        <img class="brand-logo" src="${LOGO_DATA_URI}" alt="Setangkai Project">
-        <div class="brand-text">
-          <div class="tag">Sistem Manajemen Vendor</div>
-        </div>
-      </div>
-      <div class="nav">
-        ${items.map(it=>`
-          <div class="nav-item ${currentView===it.id?'active':''}" onclick="goTo('${it.id}')">
-            ${it.icon}<span>${it.label}</span>
-          </div>
-        `).join('')}
-      </div>
-      <div class="nav-spacer"></div>
-      <div class="sidebar-foot">
-        Data tersimpan otomatis di perangkat ini.
-        <div class="sync-line"><span class="sync-dot ${syncDotClass()}"></span><span>${syncStatusText()}</span></div>
-      </div>
-    </div>
-  `;
-}
-
-function pageTitleFor(view){
-  return {
-    dashboard: ["Dashboard", "Ringkasan bisnis Setangkai Project"],
-    jadwal: ["Jadwal Event", "Semua booking wedding, dari awal sampai selesai"],
-    Package: ["Package", "Katalog Package layanan — bisa langsung dipakai saat tambah event"],
-    keuangan: ["Keuangan", "Budget, rincian biaya, dan kas per event — seperti pembukuan kamu"],
-    tim: ["Tim & Freelancer", "Fotografer, videografer, editor, dan asisten"],
-    penugasan: ["Penugasan Tim", "Siapa bertugas di event mana (catatan internal)"],
-    invoice: ["Invoice", "Buat dan cetak invoice untuk klien"],
-    pengaturan: ["Pengaturan & Backup", "Simpan cadangan data, pulihkan, atau export ke Excel"],
-  }[view] || ["", ""];
-}
-
-function renderTopbar(){
-  const [title, sub] = pageTitleFor(currentView);
-  let actionBtn = "";
-  if(currentView==='jadwal' || currentView==='keuangan') actionBtn = `<button class="btn" onclick="openEventForm()">${ICONS.plus} Tambah Event</button>`;
-  if(currentView==='Package') actionBtn = `<button class="btn" onclick="openPackageForm()">${ICONS.plus} Tambah Package</button>`;
-  if(currentView==='tim') actionBtn = `<button class="btn" onclick="openTeamForm()">${ICONS.plus} Tambah Tim</button>`;
-  if(currentView==='penugasan') actionBtn = `<button class="btn" onclick="openAssignForm()">${ICONS.plus} Tambah Penugasan</button>`;
-  if(currentView==='invoice') actionBtn = `<button class="btn" onclick="window.print()">${ICONS.print} Cetak</button>`;
-  return `
-    <div class="topbar">
-      <div style="display:flex;align-items:center;">
-        <div class="hamburger" onclick="toggleSidebar()">${ICONS.menu}</div>
-        <div class="titles">
-          <h1>${title}</h1>
-          <p>${sub}</p>
-        </div>
-      </div>
-      <div>${actionBtn}</div>
-    </div>
-  `;
-}
-
-function toggleSidebar(){ sidebarOpen = !sidebarOpen; render(); }
-function closeSidebar(){ sidebarOpen = false; render(); }
-function goTo(view){ currentView = view; sidebarOpen=false; searchTerm=""; statusFilter="Semua"; render(); }
-
-function renderView(){
-  switch(currentView){
-    case 'dashboard': return renderDashboard();
-    case 'jadwal': return renderJadwal();
-    case 'Package': return renderPackage();
-    case 'keuangan': return renderKeuangan();
-    case 'tim': return renderTim();
-    case 'penugasan': return renderPenugasan();
-    case 'invoice': return renderInvoice();
-    case 'pengaturan': return renderPengaturan();
-    default: return '';
+  if(screen === 'form'){
+    setTimeout(initMap, 0);
+    if(!packagesLoaded) loadPackages();
   }
 }
 
-/* ---------------- Dashboard ---------------- */
-function renderDashboard(){
-  const totalEvent = state.events.length;
-  const now = new Date();
-  const eventBulanIni = state.events.filter(e=>{
-    if(!e.date) return false;
-    const d = new Date(e.date+"T00:00:00");
-    return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
-  }).length;
+function renderWelcome(){
+  return `
+    <div class="welcome">
+      <div class="welcome-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l2.6 6.2L21 9l-5 4.4L17.4 21 12 17.3 6.6 21 8 13.4 3 9l6.4-0.8z"/></svg>
+      </div>
+      <div class="tag">Setangkai Project</div>
+      <h1>Isi Data Acara Kamu</h1>
+      <p>Sebelum hari-H, bantu kami lengkapi data acaramu supaya persiapan tim berjalan lancar. Hanya butuh beberapa menit.</p>
+      <button class="btn-main" onclick="goToForm()">Isi Data Sekarang →</button>
+    </div>
+  `;
+}
 
-  let totalBudget=0, totalDiterima=0, totalPiutang=0, totalBiaya=0, totalKas=0;
-  state.events.forEach(e=>{
-    const t = eventTotals(e.id);
-    totalBudget += t.budget; totalDiterima += t.diterima; totalPiutang += t.piutang; totalBiaya += t.biaya; totalKas += t.kas;
-  });
+function renderSuccess(){
+  return `
+    <div class="success">
+      <div class="success-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <h1>Data Berhasil Dikirim!</h1>
+      <p>Terima kasih sudah mengisi data acaramu. Tim Setangkai Project akan segera meninjau dan menghubungimu untuk konfirmasi lebih lanjut.</p>
+      <button class="btn-ghost" onclick="resetForm()">Isi Data Lain</button>
+    </div>
+  `;
+}
 
-  const statusCounts = {};
-  STATUS_LIST.forEach(s=>statusCounts[s]=0);
-  state.events.forEach(e=>{ if(statusCounts[e.status]!==undefined) statusCounts[e.status]++; });
-
-  const upcoming = state.events
-    .filter(e=>e.date && new Date(e.date+"T00:00:00") >= new Date(now.toDateString()))
-    .sort((a,b)=> new Date(a.date) - new Date(b.date))
-    .slice(0,5);
+function renderForm(){
+  const pkgOptions = packagesLoaded
+    ? (packages.length
+        ? packages.map(p=>`<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`).join('')
+        : '')
+    : `<option value="">Memuat daftar paket...</option>`;
 
   return `
-    <div class="grid-stats">
-      <div class="stat-card"><div class="label">Total Event</div><div class="value">${totalEvent}</div><div class="sub">${eventBulanIni} event bulan ini</div></div>
-      <div class="stat-card"><div class="label">Total Budget</div><div class="value">${fmtMoney(totalBudget)}</div><div class="sub">Diterima ${fmtMoney(totalDiterima)} · Piutang ${fmtMoney(totalPiutang)}</div></div>
-      <div class="stat-card"><div class="label">Total Biaya</div><div class="value">${fmtMoney(totalBiaya)}</div><div class="sub">Foto, video, FD, cetak, crew, transport, dll</div></div>
-      <div class="stat-card"><div class="label">Total Kas</div><div class="value ${totalKas<0?'neg':'accent'}">${fmtMoney(totalKas)}</div><div class="sub">Budget dikurangi seluruh biaya</div></div>
-    </div>
-    <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:16px;align-items:start;">
-      <div class="panel">
-        <div class="panel-head"><h3>Event Mendatang</h3></div>
-        <div class="table-wrap">
-          ${upcoming.length? `
-          <table>
-            <thead><tr><th>Klien</th><th>Tanggal</th><th>Lokasi</th><th>Status</th></tr></thead>
-            <tbody>
-              ${upcoming.map(e=>`
-                <tr>
-                  <td class="cell-strong">${e.name}</td>
-                  <td>${fmtDate(e.date)}<div class="cell-soft">${fmtDay(e.date)}</div></td>
-                  <td>${e.venue||'-'}</td>
-                  <td><span class="badge ${STATUS_BADGE[e.status]||''}">${e.status}</span></td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>` : emptyState("Belum ada event mendatang", "Tambahkan event baru di halaman Jadwal Event.")}
-        </div>
+    <div class="formscreen">
+      <div class="fs-head">
+        <h2>Form Data Acara</h2>
+        <p>Lengkapi data di bawah ini sesuai rencana acaramu.</p>
       </div>
       <div class="panel">
-        <div class="panel-head"><h3>Status Event</h3></div>
-        <div class="panel-body" style="display:flex;flex-direction:column;gap:12px;">
-          ${STATUS_LIST.map(s=>`
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <span class="badge ${STATUS_BADGE[s]}">${s}</span>
-              <span class="cell-strong">${statusCounts[s]}</span>
-            </div>
-          `).join('')}
+        <div class="section-title">Data Klien</div>
+        <div class="field">
+          <label>Nama & Pasangan</label>
+          <input id="f-nama" placeholder="mis. Azki & Rama">
+        </div>
+        <div class="field">
+          <label>Instagram <span class="opt">(opsional)</span></label>
+          <input id="f-ig" placeholder="mis. @azki.rama">
+        </div>
+
+        <div class="section-title">Detail Acara</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Jenis Acara</label>
+            <select id="f-jenis" onchange="onJenisChange()">
+              <option value="">— pilih —</option>
+              <option>Wedding</option>
+              <option>Engagement</option>
+              <option>Prewedding</option>
+              <option>Lamaran</option>
+              <option>Ulang Tahun</option>
+              <option>Corporate</option>
+              <option value="__lainnya">Lainnya</option>
+            </select>
+          </div>
+          <div class="field" id="jenis-lainnya-field" style="display:none;">
+            <label>Sebutkan Jenis Acara</label>
+            <input id="f-jenis-lainnya" placeholder="mis. Sunatan">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Tanggal Acara</label>
+            <input id="f-tanggal" type="date">
+          </div>
+          <div class="field">
+            <label>Paket yang Diambil</label>
+            <select id="f-paket">
+              <option value="">— pilih paket —</option>
+              ${pkgOptions}
+              <option value="__lainnya">Belum tahu / Lainnya</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Waktu Mulai</label>
+            <input id="f-waktu-mulai" type="time">
+          </div>
+          <div class="field">
+            <label>Waktu Selesai</label>
+            <input id="f-waktu-selesai" type="time">
+          </div>
+        </div>
+        <div class="field">
+          <label>Lokasi Acara</label>
+          <input id="f-lokasi" placeholder="mis. Cluster Alamanda, Depok">
+        </div>
+
+        <div class="section-title">Shareloc</div>
+        <div class="hint">Klik titik lokasi di peta untuk membagikan titik acara yang tepat, atau gunakan tombol di bawah.</div>
+        <div class="loc-actions">
+          <button type="button" class="btn-ghost" onclick="useMyLocation()">📍 Gunakan Lokasi Saya</button>
+        </div>
+        <div id="map"></div>
+        <div class="loc-status ${picked ? 'picked' : ''}" id="loc-status">${picked ? 'Titik lokasi dipilih ✓' : 'Belum ada titik dipilih'}</div>
+        <div class="field">
+          <label>Atau tempel link Google Maps <span class="opt">(opsional)</span></label>
+          <input id="f-shareloc-manual" placeholder="https://maps.google.com/..." oninput="onManualLocInput()">
+        </div>
+
+        <div class="submit-bar">
+          <button class="btn-submit" id="btn-submit" onclick="submitForm()" ${submitting?'disabled':''}>${submitting? 'Mengirim...' : 'Kirim Data'}</button>
+          ${submitError ? `<div class="err-text">${escapeHtml(submitError)}</div>` : ''}
         </div>
       </div>
     </div>
+    <div class="foot-brand">Setangkai Project</div>
   `;
 }
 
-function emptyState(title, sub){
-  return `<div class="empty-state">${ICONS.empty}<div class="t">${title}</div><div>${sub}</div></div>`;
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
-/* ---------------- Jadwal Event ---------------- */
-function renderJadwal(){
-  let rows = state.events.slice().sort((a,b)=> new Date(a.date||0) - new Date(b.date||0));
-  if(searchTerm) rows = rows.filter(e => (e.name+" "+e.venue+" "+(e.invoiceNo||'')).toLowerCase().includes(searchTerm.toLowerCase()));
-  if(statusFilter!=='Semua') rows = rows.filter(e=>e.status===statusFilter);
-  const groups = groupByMonth(rows);
-
-  return `
-    <div class="toolbar">
-      <div class="search-box">${ICONS.search}<input placeholder="Cari klien / lokasi / no. invoice..." value="${searchTerm}" oninput="onSearch(this.value)"></div>
-      <select class="filter" onchange="onFilterStatus(this.value)">
-        <option value="Semua" ${statusFilter==='Semua'?'selected':''}>Semua Status</option>
-        ${STATUS_LIST.map(s=>`<option value="${s}" ${statusFilter===s?'selected':''}>${s}</option>`).join('')}
-      </select>
-    </div>
-    <div class="panel">
-      <div class="table-wrap">
-        ${rows.length? `
-        <table>
-          <thead><tr><th>No. Invoice</th><th>Klien</th><th>Acara</th><th>Tanggal</th><th>Lokasi</th><th>Job</th><th>Status</th><th></th></tr></thead>
-          <tbody>
-            ${groups.map(g=>`
-              <tr class="month-band"><td colspan="8">${g.key}</td></tr>
-              ${g.items.map(e=>`
-                <tr>
-                  <td class="cell-soft">${e.invoiceNo||'-'}</td>
-                  <td class="cell-strong">${e.name}</td>
-                  <td>${e.acara||'-'}</td>
-                  <td>${fmtDate(e.date)}<div class="cell-soft">${fmtDay(e.date)}</div></td>
-                  <td>${e.venue||'-'}</td>
-                  <td>${e.job||'-'}</td>
-                  <td><span class="badge ${STATUS_BADGE[e.status]||''}">${e.status}</span></td>
-                  <td>
-                    <div class="row-actions">
-                      <div class="icon-btn" onclick="openEventForm('${e.id}')">${ICONS.edit}</div>
-                      <div class="icon-btn del" onclick="deleteEvent('${e.id}')">${ICONS.trash}</div>
-                    </div>
-                  </td>
-                </tr>
-              `).join('')}
-            `).join('')}
-          </tbody>
-        </table>` : emptyState("Belum ada event", "Klik \"Tambah Event\" untuk mencatat booking pertama.")}
-      </div>
-    </div>
-  `;
+function goToForm(){ screen = 'form'; render(); }
+function resetForm(){
+  picked = null; submitError=''; submitting=false;
+  screen = 'welcome'; render();
 }
-function onSearch(v){ searchTerm=v; render(); focusSearch(); }
-function onFilterStatus(v){ statusFilter=v; render(); }
-function focusSearch(){ const i=document.querySelector('.search-box input'); if(i){ i.focus(); i.selectionStart=i.selectionEnd=i.value.length; } }
 
-function openEventForm(id){
-  const ev = id ? eventById(id) : {invoiceNo:"",name:"",clientPhone:"",pasangan:"",acara:"",job:"",packageName:"",packageItems:"",waktuAcara:"",date:"",venue:"",coordinator:"",status:"Booking Baru",notes:""};
-  const f = id ? getFinance(id) : getFinance(null);
+function onJenisChange(){
+  const v = document.getElementById('f-jenis').value;
+  document.getElementById('jenis-lainnya-field').style.display = (v === '__lainnya') ? 'block' : 'none';
+}
 
-  const bodyHtml = `
-    <div class="section-title">Informasi Event</div>
-    <div class="field-row">
-      <div class="field"><label>No. Invoice (opsional)</label><input id="f-invoiceNo" value="${ev.invoiceNo||''}" placeholder="mis. SP000144"></div>
-      <div class="field"><label>Tanggal Event</label><input id="f-date" type="date" value="${ev.date||''}"></div>
-    </div>
-    <div class="field-row">
-      <div class="field"><label>Nama Klien (kontak)</label><input id="f-name" value="${ev.name||''}" placeholder="mis. Kak Azki"></div>
-      <div class="field"><label>No. HP Klien</label><input id="f-clientPhone" value="${ev.clientPhone||''}" placeholder="mis. 0895-3957-91017"></div>
-    </div>
-    <div class="field"><label>Nama & Pasangan (untuk invoice)</label><input id="f-pasangan" value="${ev.pasangan||''}" placeholder="mis. Azki & Rama"></div>
-    <div class="field-row">
-      <div class="field"><label>Acara</label><input id="f-acara" list="acara-list" value="${ev.acara||''}" placeholder="mis. Wedding, Engagement"></div>
-      <div class="field"><label>Job</label><input id="f-job" list="job-list" value="${ev.job||''}" placeholder="mis. Foto Video"></div>
-    </div>
-    <datalist id="acara-list"><option>Wedding</option><option>Engagement</option><option>Wedding + Mini Studio</option><option>Prewedding</option></datalist>
-    <datalist id="job-list"><option>Foto Video</option><option>Foto Video Studio</option><option>Foto Video Liputan</option><option>Foto Saja</option><option>Video Saja</option></datalist>
-    <div class="field-row">
-      <div class="field"><label>Lokasi Acara (Shareloc)</label><input id="f-venue" value="${ev.venue||''}" placeholder="mis. Cluster Alamanda"></div>
-      <div class="field"><label>Waktu Acara</label><input id="f-waktuAcara" value="${ev.waktuAcara||''}" placeholder="mis. 07.00 - 17.00"></div>
-    </div>
-    <div class="field-row">
-      <div class="field"><label>Koordinator</label><input id="f-coord" value="${ev.coordinator||''}" placeholder="mis. Aji"></div>
-      <div class="field"><label>Status</label><select id="f-status">${STATUS_LIST.map(s=>`<option ${ev.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
-    </div>
-    <div class="field"><label>Catatan</label><textarea id="f-notes">${ev.notes||''}</textarea></div>
-
-    <div class="section-title">Detail Package (untuk Invoice)</div>
-    ${state.packages.length? `<div class="field"><label>Pilih dari Katalog Package (opsional)</label><select id="f-pkgPick" onchange="prefillPackage()"><option value="">— pilih Package —</option>${state.packages.map(p=>`<option value="${p.id}">${p.name} (${fmtMoney(p.price)})</option>`).join('')}</select></div>` : `<div class="hint" style="margin-bottom:14px;">Belum ada katalog Package. Kamu bisa isi manual di bawah, atau buat katalog dulu di halaman "Package".</div>`}
-    <div class="field"><label>Nama Package</label><input id="f-packageName" value="${ev.packageName||''}" placeholder="mis. Lavatera Wedding"></div>
-    <div class="field"><label>Rincian Package (satu baris = satu item)</label><textarea id="f-packageItems" style="min-height:110px;" placeholder="1 Photographer&#10;1 Videographer&#10;8 Hours Service">${ev.packageItems||''}</textarea></div>
-
-    <div class="section-title">Keuangan</div>
-    <div class="field-row">
-      <div class="field"><label>Budget (Rp)</label><input id="f-budget" type="number" value="${f.budget||0}" oninput="updateKasPreview()"></div>
-      <div class="field"><label>Payment 1 / DP (Rp)</label><input id="f-dp" type="number" value="${f.dp||0}"></div>
-    </div>
-    <div class="field"><label>Payment 2 / Pelunasan (Rp)</label><input id="f-pelunasan" type="number" value="${f.pelunasan||0}"></div>
-    <div class="hint" style="margin-bottom:14px;">Rincian biaya di bawah — sesuai kolom pembukuan kamu (Foto, Video, FD, Cetak, Crew, Transport, Dll).</div>
-    ${COST_FIELDS.map(c=>`<div class="field"><label>${c.label} (Rp)</label><input id="f-${c.key}" type="number" value="${f[c.key]||0}" oninput="updateKasPreview()"></div>`).join('')}
-    <div class="kas-preview">
-      <span class="lbl">Kas (Budget − Total Biaya)</span>
-      <span class="val" id="kas-preview-val">${fmtMoney((Number(f.budget)||0) - COST_FIELDS.reduce((s,c)=>s+(Number(f[c.key])||0),0))}</span>
-    </div>
-  `;
-
-  openDrawer(id? "Edit Event" : "Tambah Event", bodyHtml, async ()=>{
-    const name = document.getElementById('f-name').value.trim();
-    if(!name){ showToast("Nama klien wajib diisi"); return false; }
-    const data = {
-      invoiceNo: document.getElementById('f-invoiceNo').value.trim(),
-      name,
-      clientPhone: document.getElementById('f-clientPhone').value.trim(),
-      pasangan: document.getElementById('f-pasangan').value.trim(),
-      acara: document.getElementById('f-acara').value.trim(),
-      job: document.getElementById('f-job').value.trim(),
-      packageName: document.getElementById('f-packageName').value.trim(),
-      packageItems: document.getElementById('f-packageItems').value,
-      waktuAcara: document.getElementById('f-waktuAcara').value.trim(),
-      date: document.getElementById('f-date').value,
-      venue: document.getElementById('f-venue').value.trim(),
-      coordinator: document.getElementById('f-coord').value.trim(),
-      status: document.getElementById('f-status').value,
-      notes: document.getElementById('f-notes').value.trim(),
-    };
-    let targetId = id;
-    if(id){
-      Object.assign(eventById(id), data);
+async function loadPackages(){
+  packagesLoaded = false;
+  try{
+    const res = await fetch(CLOUD_URL, {method:'GET'});
+    const json = await res.json();
+    if(json.ok && json.data && Array.isArray(json.data.packages)){
+      packages = json.data.packages;
     } else {
-      targetId = uid('EV', state.counters.event++);
-      state.events.push({id:targetId, ...data});
+      packages = [];
     }
-    const finData = { budget: Number(document.getElementById('f-budget').value)||0, dp: Number(document.getElementById('f-dp').value)||0, pelunasan: Number(document.getElementById('f-pelunasan').value)||0 };
-    COST_FIELDS.forEach(c=>{ finData[c.key] = Number(document.getElementById('f-'+c.key).value)||0; });
-    state.finance[targetId] = finData;
-    await persist();
-    render();
-    showToast(id? "Event diperbarui" : "Event ditambahkan");
-    return true;
-  }, 'event:' + (id || 'new'));
-}
-function prefillPackage(){
-  const pkgId = document.getElementById('f-pkgPick').value;
-  const pk = packageById(pkgId);
-  if(pk){
-    document.getElementById('f-packageName').value = pk.name;
-    document.getElementById('f-packageItems').value = pk.items;
-    document.getElementById('f-budget').value = pk.price;
-    updateKasPreview();
+  }catch(err){
+    packages = [];
   }
-  if(captureCurrentDraft) captureCurrentDraft();
+  packagesLoaded = true;
+  if(screen === 'form') render();
 }
-function updateKasPreview(){
-  const budget = Number(document.getElementById('f-budget').value)||0;
-  const biaya = COST_FIELDS.reduce((s,c)=> s + (Number(document.getElementById('f-'+c.key).value)||0), 0);
-  const kas = budget - biaya;
-  const el = document.getElementById('kas-preview-val');
-  el.textContent = fmtMoney(kas);
-  el.className = "val" + (kas<0? " neg":"");
+
+function initMap(){
+  const el = document.getElementById('map');
+  if(!el || map) return;
+  map = L.map('map').setView([-6.2405, 106.9924], 11); // default: sekitar Bekasi
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+  map.on('click', function(e){
+    setPicked(e.latlng.lat, e.latlng.lng);
+  });
+  if(picked){ setPicked(picked.lat, picked.lng, true); }
 }
-async function deleteEvent(id){
-  if(!confirm("Hapus event ini? Penugasan tim dan data keuangan terkait juga akan terhapus.")) return;
-  state.events = state.events.filter(e=>e.id!==id);
-  state.assignments = state.assignments.filter(a=>a.eventId!==id);
-  delete state.finance[id];
-  await persist();
+
+function setPicked(lat, lng, skipMove){
+  picked = {lat, lng};
+  if(marker){ map.removeLayer(marker); }
+  marker = L.marker([lat, lng]).addTo(map);
+  if(!skipMove) map.panTo([lat, lng]);
+  document.getElementById('f-shareloc-manual').value = `https://www.google.com/maps?q=${lat.toFixed(6)},${lng.toFixed(6)}`;
+  const st = document.getElementById('loc-status');
+  if(st){ st.textContent = 'Titik lokasi dipilih ✓'; st.classList.add('picked'); }
+}
+
+function onManualLocInput(){
+  // Kalau user tempel link manual, kita anggap valid tanpa perlu titik peta
+  const v = document.getElementById('f-shareloc-manual').value.trim();
+  const st = document.getElementById('loc-status');
+  if(v && !picked){
+    if(st){ st.textContent = 'Link lokasi ditempel manual ✓'; st.classList.add('picked'); }
+  } else if(!v && !picked){
+    if(st){ st.textContent = 'Belum ada titik dipilih'; st.classList.remove('picked'); }
+  }
+}
+
+function useMyLocation(){
+  if(!navigator.geolocation){ alert('Perangkat tidak mendukung deteksi lokasi.'); return; }
+  navigator.geolocation.getCurrentPosition(function(pos){
+    setPicked(pos.coords.latitude, pos.coords.longitude);
+    if(map) map.setView([pos.coords.latitude, pos.coords.longitude], 15);
+  }, function(err){
+    alert('Tidak bisa mengambil lokasi: ' + err.message);
+  });
+}
+
+async function submitForm(){
+  const nama = document.getElementById('f-nama').value.trim();
+  const tanggal = document.getElementById('f-tanggal').value;
+  let jenis = document.getElementById('f-jenis').value;
+  if(jenis === '__lainnya') jenis = document.getElementById('f-jenis-lainnya').value.trim();
+  let paket = document.getElementById('f-paket').value;
+  if(paket === '__lainnya') paket = '';
+
+  if(!nama){ submitError = 'Nama & Pasangan wajib diisi.'; render(); return; }
+  if(!jenis){ submitError = 'Jenis Acara wajib diisi.'; render(); return; }
+  if(!tanggal){ submitError = 'Tanggal Acara wajib diisi.'; render(); return; }
+
+  submitError = '';
+  submitting = true;
   render();
-  showToast("Event dihapus");
-}
 
-/* ---------------- Keuangan (ledger ala pembukuan manual) ---------------- */
-function renderKeuangan(){
-  let rows = state.events.slice().sort((a,b)=> new Date(a.date||0) - new Date(b.date||0));
-  const groups = groupByMonth(rows);
-  const colCount = 10;
+  const waktuMulaiRaw = document.getElementById('f-waktu-mulai').value; // "07:00"
+  const waktuSelesaiRaw = document.getElementById('f-waktu-selesai').value;
+  const waktuMulai = waktuMulaiRaw ? waktuMulaiRaw.replace(':', '.') : '';
+  const waktuSelesai = waktuSelesaiRaw ? waktuSelesaiRaw.replace(':', '.') : '';
 
-  function sumRow(items, label){
-    let budget=0, biaya={}, kas=0;
-    COST_FIELDS.forEach(c=>biaya[c.key]=0);
-    items.forEach(e=>{
-      const t = eventTotals(e.id);
-      budget += t.budget; kas += t.kas;
-      const f = getFinance(e.id);
-      COST_FIELDS.forEach(c=> biaya[c.key]+=Number(f[c.key]||0));
+  const payload = {
+    __formSubmission: true,
+    namaPasangan: nama,
+    instagram: document.getElementById('f-ig').value.trim(),
+    jenisAcara: jenis,
+    tanggal: tanggal,
+    waktuMulai: waktuMulai,
+    waktuSelesai: waktuSelesai,
+    paket: paket,
+    lokasi: document.getElementById('f-lokasi').value.trim(),
+    shareloc: document.getElementById('f-shareloc-manual').value.trim()
+  };
+
+  try{
+    const res = await fetch(CLOUD_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
     });
-    return `<tr class="subtotal-row">
-      <td colspan="2">${label}</td>
-      <td>${fmtMoney(budget)}</td>
-      ${COST_FIELDS.map(c=>`<td>${fmtMoney(biaya[c.key])}</td>`).join('')}
-      <td>${fmtMoney(kas)}</td>
-    </tr>`;
-  }
-
-  return `
-    <div class="panel">
-      <div class="table-wrap">
-        ${rows.length? `
-        <table>
-          <thead><tr>
-            <th>No. Invoice</th><th>Klien</th><th>Budget</th><th>Foto</th><th>Video</th><th>FD</th><th>Cetak</th><th>Crew</th><th>Transport</th><th>Dll</th><th>Kas</th><th></th>
-          </tr></thead>
-          <tbody>
-            ${groups.map(g=>{
-              const rowsHtml = g.items.map(e=>{
-                const f = getFinance(e.id);
-                const t = eventTotals(e.id);
-                return `
-                <tr>
-                  <td class="cell-soft">${e.invoiceNo||'-'}</td>
-                  <td class="cell-strong">${e.name}<div class="cell-soft">${fmtDate(e.date)}</div></td>
-                  <td>${fmtMoney(t.budget)}</td>
-                  <td>${fmtMoney(f.biayaFoto)}</td>
-                  <td>${fmtMoney(f.biayaVideo)}</td>
-                  <td>${fmtMoney(f.biayaFD)}</td>
-                  <td>${fmtMoney(f.biayaCetak)}</td>
-                  <td>${fmtMoney(f.biayaCrew)}</td>
-                  <td>${fmtMoney(f.biayaTransport)}</td>
-                  <td>${fmtMoney(f.biayaLain)}</td>
-                  <td style="color:${t.kas<0?'var(--danger)':(t.kas>0?'var(--success)':'var(--ink-soft)')};font-weight:700;">${fmtMoney(t.kas)}</td>
-                  <td><div class="row-actions"><div class="icon-btn" onclick="openEventForm('${e.id}')">${ICONS.edit}</div></div></td>
-                </tr>`;
-              }).join('');
-              return `<tr class="month-band"><td colspan="12">${g.key}</td></tr>${rowsHtml}${sumRow(g.items, 'Rekap '+g.key)}`;
-            }).join('')}
-          </tbody>
-        </table>` : emptyState("Belum ada event", "Tambahkan event di halaman Jadwal Event terlebih dahulu.")}
-      </div>
-    </div>
-  `;
-}
-
-/* ---------------- Package ---------------- */
-function packageById(id){ return state.packages.find(p=>p.id===id); }
-function renderPackage(){
-  const rows = state.packages.slice();
-  return `
-    <div class="panel">
-      <div class="table-wrap">
-        ${rows.length? `
-        <table>
-          <thead><tr><th>Nama Package</th><th>Harga</th><th>Rincian</th><th></th></tr></thead>
-          <tbody>
-            ${rows.map(p=>{
-              const items = (p.items||'').split('\n').map(s=>s.trim()).filter(Boolean);
-              return `
-              <tr>
-                <td class="cell-strong">${p.name}</td>
-                <td>${fmtMoney(p.price)}</td>
-                <td style="white-space:normal;max-width:420px;">
-                  <span class="cell-soft">${items.slice(0,4).join(' · ')}${items.length>4? ' · ...' : ''}</span>
-                </td>
-                <td>
-                  <div class="row-actions">
-                    <div class="icon-btn" onclick="openPackageForm('${p.id}')">${ICONS.edit}</div>
-                    <div class="icon-btn del" onclick="deletePackage('${p.id}')">${ICONS.trash}</div>
-                  </div>
-                </td>
-              </tr>`;
-            }).join('')}
-          </tbody>
-        </table>` : emptyState("Belum ada Package", "Klik \"Tambah Package\" untuk membuat katalog Package layanan pertama.")}
-      </div>
-    </div>
-  `;
-}
-function openPackageForm(id){
-  const pk = id ? packageById(id) : {name:"", price:0, items:""};
-  openDrawer(id? "Edit Package" : "Tambah Package", `
-    <div class="field"><label>Nama Package</label><input id="f-pname" value="${pk.name||''}" placeholder="mis. Lavatera Wedding"></div>
-    <div class="field"><label>Harga (Rp)</label><input id="f-pprice" type="number" value="${pk.price||0}"></div>
-    <div class="field"><label>Rincian Package (satu baris = satu item)</label><textarea id="f-pitems" style="min-height:150px;" placeholder="1 Photographer&#10;1 Videographer&#10;8 Hours Service">${pk.items||''}</textarea></div>
-  `, async ()=>{
-    const name = document.getElementById('f-pname').value.trim();
-    if(!name){ showToast("Nama Package wajib diisi"); return false; }
-    const data = {
-      name,
-      price: Number(document.getElementById('f-pprice').value)||0,
-      items: document.getElementById('f-pitems').value,
-    };
-    if(id){ Object.assign(packageById(id), data); }
-    else { const newId = uid('PKG', state.counters.package++); state.packages.push({id:newId, ...data}); }
-    await persist();
+    const json = await res.json();
+    if(!json.ok) throw new Error(json.error || 'Gagal mengirim data');
+    submitting = false;
+    screen = 'success';
     render();
-    showToast(id? "Package diperbarui" : "Package ditambahkan");
-    return true;
-  }, 'package:' + (id || 'new'));
-}
-async function deletePackage(id){
-  if(!confirm("Hapus Package ini? Event yang sudah memakai Package ini tidak akan berubah.")) return;
-  state.packages = state.packages.filter(p=>p.id!==id);
-  await persist();
-  render();
-  showToast("Package dihapus");
-}
-
-/* ---------------- Tim & Freelancer ---------------- */
-function renderTim(){
-  let rows = state.team.slice();
-  if(searchTerm) rows = rows.filter(t=>(t.name+t.role).toLowerCase().includes(searchTerm.toLowerCase()));
-  return `
-    <div class="toolbar">
-      <div class="search-box">${ICONS.search}<input placeholder="Cari nama / role..." value="${searchTerm}" oninput="onSearch(this.value)"></div>
-    </div>
-    <div class="panel">
-      <div class="table-wrap">
-        ${rows.length? `
-        <table>
-          <thead><tr><th>ID</th><th>Nama</th><th>Role</th><th>Kontak</th><th>Rate / Event</th><th>Status</th><th></th></tr></thead>
-          <tbody>
-            ${rows.map(t=>`
-              <tr>
-                <td class="cell-soft">${t.id}</td>
-                <td class="cell-strong">${t.name}</td>
-                <td>${t.role}</td>
-                <td>${t.phone||'-'}</td>
-                <td>${fmtMoney(t.rate)}</td>
-                <td><span class="badge ${t.active?'b-active':'b-inactive'}">${t.active?'Aktif':'Non-Aktif'}</span></td>
-                <td>
-                  <div class="row-actions">
-                    <div class="icon-btn" onclick="openTeamForm('${t.id}')">${ICONS.edit}</div>
-                    <div class="icon-btn del" onclick="deleteTeam('${t.id}')">${ICONS.trash}</div>
-                  </div>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>` : emptyState("Belum ada tim", "Klik \"Tambah Tim\" untuk mendaftarkan fotografer/videografer.")}
-      </div>
-    </div>
-  `;
-}
-function openTeamForm(id){
-  const tm = id ? teamById(id) : {name:"",role:"Fotografer",phone:"",rate:0,active:true,notes:""};
-  openDrawer(id? "Edit Tim" : "Tambah Tim", `
-    <div class="field"><label>Nama</label><input id="f-name" value="${tm.name||''}" placeholder="mis. Aji Pratama"></div>
-    <div class="field-row">
-      <div class="field"><label>Role Utama</label><select id="f-role">${ROLES.map(r=>`<option ${tm.role===r?'selected':''}>${r}</option>`).join('')}</select></div>
-      <div class="field"><label>No. HP / WA</label><input id="f-phone" value="${tm.phone||''}" placeholder="0812xxxxxxxx"></div>
-    </div>
-    <div class="field-row">
-      <div class="field"><label>Rate per Event (Rp)</label><input id="f-rate" type="number" value="${tm.rate||0}"></div>
-      <div class="field"><label>Status</label><select id="f-active"><option value="true" ${tm.active?'selected':''}>Aktif</option><option value="false" ${!tm.active?'selected':''}>Non-Aktif</option></select></div>
-    </div>
-    <div class="field"><label>Catatan</label><textarea id="f-notes">${tm.notes||''}</textarea></div>
-  `, async ()=>{
-    const name = document.getElementById('f-name').value.trim();
-    if(!name){ showToast("Nama wajib diisi"); return false; }
-    const data = {
-      name,
-      role: document.getElementById('f-role').value,
-      phone: document.getElementById('f-phone').value.trim(),
-      rate: Number(document.getElementById('f-rate').value)||0,
-      active: document.getElementById('f-active').value==='true',
-      notes: document.getElementById('f-notes').value.trim(),
-    };
-    if(id){ Object.assign(teamById(id), data); }
-    else { const newId = uid('TM', state.counters.team++); state.team.push({id:newId, ...data}); }
-    await persist();
+  }catch(err){
+    submitting = false;
+    submitError = 'Gagal mengirim data: ' + err.message + '. Coba lagi ya.';
     render();
-    showToast(id? "Data tim diperbarui" : "Tim ditambahkan");
-    return true;
-  }, 'team:' + (id || 'new'));
-}
-async function deleteTeam(id){
-  const used = state.assignments.some(a=>a.teamId===id);
-  if(used && !confirm("Tim ini masih terpasang di penugasan event. Hapus juga penugasannya?")) return;
-  state.team = state.team.filter(t=>t.id!==id);
-  state.assignments = state.assignments.filter(a=>a.teamId!==id);
-  await persist();
-  render();
-  showToast("Tim dihapus");
-}
-
-/* ---------------- Penugasan Tim (catatan internal, terpisah dari perhitungan Kas) ---------------- */
-function renderPenugasan(){
-  let rows = state.assignments.slice();
-  return `
-    <div class="hint" style="margin-bottom:14px;">Halaman ini untuk catatan siapa bertugas di event mana. Fee di sini tidak otomatis masuk ke perhitungan Kas — biaya crew tetap diisi manual di halaman Keuangan, sesuai kebiasaan pembukuan kamu.</div>
-    <div class="panel">
-      <div class="table-wrap">
-        ${rows.length? `
-        <table>
-          <thead><tr><th>Event</th><th>Tanggal</th><th>Nama Tim</th><th>Role</th><th>Fee</th><th>Status Bayar</th><th></th></tr></thead>
-          <tbody>
-            ${rows.map(a=>{
-              const ev = eventById(a.eventId) || {name:"(event dihapus)", date:""};
-              const tm = teamById(a.teamId) || {name:"(tim dihapus)"};
-              return `
-              <tr>
-                <td class="cell-strong">${ev.name}<div class="cell-soft">${a.eventId}</div></td>
-                <td>${fmtDate(ev.date)}</td>
-                <td>${tm.name}</td>
-                <td>${a.role}</td>
-                <td>${fmtMoney(a.fee)}</td>
-                <td><span class="badge ${a.paid?'b-paid':'b-unpaid'}">${a.paid?'Sudah Dibayar':'Belum Dibayar'}</span></td>
-                <td>
-                  <div class="row-actions">
-                    <div class="icon-btn" onclick="openAssignForm('${a.id}')">${ICONS.edit}</div>
-                    <div class="icon-btn del" onclick="deleteAssign('${a.id}')">${ICONS.trash}</div>
-                  </div>
-                </td>
-              </tr>`;
-            }).join('')}
-          </tbody>
-        </table>` : emptyState("Belum ada penugasan", "Assign tim ke event lewat tombol \"Tambah Penugasan\".")}
-      </div>
-    </div>
-  `;
-}
-function openAssignForm(id){
-  if(!state.events.length){ showToast("Tambahkan event dulu sebelum membuat penugasan"); return; }
-  if(!state.team.length){ showToast("Tambahkan tim dulu sebelum membuat penugasan"); return; }
-  const as = id ? state.assignments.find(a=>a.id===id) : {eventId:state.events[0]?.id||"", teamId:state.team[0]?.id||"", role:"", fee:0, paid:false};
-  const teamOptions = state.team.map(t=>`<option value="${t.id}" ${as.teamId===t.id?'selected':''}>${t.name} (${t.role})</option>`).join('');
-  const eventOptions = state.events.map(e=>`<option value="${e.id}" ${as.eventId===e.id?'selected':''}>${e.name} — ${e.id}</option>`).join('');
-  openDrawer(id? "Edit Penugasan" : "Tambah Penugasan", `
-    <div class="field"><label>Event</label><select id="f-event">${eventOptions}</select></div>
-    <div class="field"><label>Anggota Tim</label><select id="f-team" onchange="prefillFee()">${teamOptions}</select></div>
-    <div class="field-row">
-      <div class="field"><label>Role Saat Ini</label><input id="f-role" value="${as.role||''}" placeholder="mis. Fotografer"></div>
-      <div class="field"><label>Fee Event (Rp)</label><input id="f-fee" type="number" value="${as.fee||0}"></div>
-    </div>
-    <div class="field"><label>Status Bayar Fee</label><select id="f-paid"><option value="false" ${!as.paid?'selected':''}>Belum Dibayar</option><option value="true" ${as.paid?'selected':''}>Sudah Dibayar</option></select></div>
-  `, async ()=>{
-    const data = {
-      eventId: document.getElementById('f-event').value,
-      teamId: document.getElementById('f-team').value,
-      role: document.getElementById('f-role').value.trim(),
-      fee: Number(document.getElementById('f-fee').value)||0,
-      paid: document.getElementById('f-paid').value==='true',
-    };
-    if(id){ Object.assign(state.assignments.find(a=>a.id===id), data); }
-    else { const newId = uid('AS', state.counters.assign++); state.assignments.push({id:newId, ...data}); }
-    await persist();
-    render();
-    showToast(id? "Penugasan diperbarui" : "Penugasan ditambahkan");
-    return true;
-  }, 'assign:' + (id || 'new'));
-}
-function prefillFee(){
-  const teamId = document.getElementById('f-team').value;
-  const tm = teamById(teamId);
-  if(tm){
-    document.getElementById('f-role').value = tm.role;
-    document.getElementById('f-fee').value = tm.rate;
   }
-  if(captureCurrentDraft) captureCurrentDraft();
-}
-async function deleteAssign(id){
-  if(!confirm("Hapus penugasan ini?")) return;
-  state.assignments = state.assignments.filter(a=>a.id!==id);
-  await persist();
-  render();
-  showToast("Penugasan dihapus");
 }
 
-/* ---------------- Invoice ---------------- */
-function renderInvoice(){
-  if(!invoiceEventId && state.events.length) invoiceEventId = state.events[0].id;
-  const eventOptions = state.events.map(e=>`<option value="${e.id}" ${invoiceEventId===e.id?'selected':''}>${e.name} — ${e.id}</option>`).join('');
-  const ev = eventById(invoiceEventId);
-  const c = state.company;
-
-  if(!ev){
-    return emptyState("Belum ada event", "Tambahkan event terlebih dahulu untuk membuat invoice.");
-  }
-  const t = eventTotals(ev.id);
-  const f = getFinance(ev.id);
-  const invoiceNo = ev.invoiceNo && ev.invoiceNo.trim() ? ev.invoiceNo : `INV/${new Date().getFullYear()}/${ev.id}`;
-  const todayStr = new Date().toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
-  const packageItems = (ev.packageItems||'').split('\n').map(s=>s.trim()).filter(Boolean);
-  const termsLines = (c.terms||'').split('\n').map(s=>s.trim()).filter(Boolean);
-  const termsLeft = termsLines.filter((_,i)=>i%2===0);
-  const termsRight = termsLines.filter((_,i)=>i%2===1);
-
-  return `
-    <div class="invoice-wrap">
-      <div class="invoice-controls">
-        <div class="panel">
-          <div class="panel-head"><h3>Pilih Event</h3></div>
-          <div class="panel-body">
-            <div class="field"><label>Event</label><select onchange="invoiceEventId=this.value; render();">${eventOptions}</select></div>
-            <div class="hint" style="margin-bottom:14px;">Detail Package, pasangan, dan waktu acara diisi lewat tombol Edit di halaman Jadwal Event.</div>
-            <div class="field"><label>Nama Usaha</label><input id="c-name" value="${c.name||''}" onchange="updateCompany('name', this.value)"></div>
-            <div class="field"><label>Social Media / Username</label><input id="c-social" value="${c.social||''}" onchange="updateCompany('social', this.value)" placeholder="@setangkaiproject"></div>
-            <div class="field"><label>WA / Telepon</label><input id="c-phone" value="${c.phone||''}" onchange="updateCompany('phone', this.value)"></div>
-            <div class="field"><label>Email</label><input id="c-email" value="${c.email||''}" onchange="updateCompany('email', this.value)"></div>
-            <div class="field"><label>Info Rekening (Please Make Payment To)</label><textarea id="c-bank" onchange="updateCompany('bank', this.value)" placeholder="BCA&#10;7391678174&#10;a/n Aditya Giri Rahmanda">${c.bank||''}</textarea></div>
-            <div class="field"><label>Syarat & Ketentuan (satu baris = satu poin)</label><textarea id="c-terms" onchange="updateCompany('terms', this.value)" style="min-height:90px;">${c.terms||''}</textarea></div>
-            <button class="btn secondary" style="width:100%;justify-content:center;" onclick="window.print()">${ICONS.print} Cetak / Simpan PDF</button>
-          </div>
-        </div>
-      </div>
-      <div class="invoice-sheet" id="invoice-sheet">
-        <div class="inv-header">
-          <img class="brand-logo-img" src="${LOGO_DATA_URI}" alt="${c.name||'Setangkai Project'}">
-          <div class="contact">${[c.social,c.phone,c.email].filter(Boolean).join('<br>')}</div>
-        </div>
-        <div class="inv-title-wrap">
-          <div class="t">I N V O I C E</div>
-          <div class="n">Number : ${invoiceNo}</div>
-        </div>
-        <div class="inv-body">
-          <div class="inv-to-date">
-            <div>
-              <div class="lbl">Invoice To :</div>
-              <div class="client">${ev.name}</div>
-              <div class="phone">${ev.clientPhone||''}</div>
-            </div>
-            <div class="dateside">
-              <div class="lbl">Date :</div>
-              <div class="dateval">${todayStr}</div>
-            </div>
-          </div>
-          <table class="inv-table">
-            <thead><tr><th>No.</th><th>Description</th><th>Total</th></tr></thead>
-            <tbody>
-              <tr>
-                <td>1</td>
-                <td>
-                  <div class="inv-pkg-name">${ev.packageName || ev.job || ev.acara || 'Package'}</div>
-                  ${packageItems.length? `<ul class="inv-pkg-items">${packageItems.map(it=>`<li>${it}</li>`).join('')}</ul>` : ''}
-                </td>
-                <td>Rp. ${Number(t.budget||0).toLocaleString('id-ID')}</td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="inv-pay-wrap">
-            <div class="inv-pay-left">
-              <div class="lbl">Please Make Payment To :</div>
-              <div class="bankline">${c.bank||''}</div>
-            </div>
-            <div class="inv-pay-right">
-              <div class="row"><span>Sub Total</span><span>Rp. ${Number(t.budget||0).toLocaleString('id-ID')}</span></div>
-              <div class="row"><span>Payment 1</span><span>Rp. ${Number(f.dp||0).toLocaleString('id-ID')}</span></div>
-              <div class="row"><span>Payment 2</span><span>${f.pelunasan? 'Rp. '+Number(f.pelunasan).toLocaleString('id-ID') : 'Rp.'}</span></div>
-              <div class="row remaining"><span>Remaining Payment</span><span>Rp. ${Number(t.piutang||0).toLocaleString('id-ID')}</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="inv-event-band">
-          <div><b>Nama & Pasangan</b> : ${ev.pasangan || ev.name}</div>
-          <div><b>Tanggal Acara</b> : ${fmtDate(ev.date)}</div>
-          <div><b>Waktu Acara</b> : ${ev.waktuAcara||'-'}</div>
-          <div><b>Lokasi Acara (Shareloc)</b> : ${ev.venue||'-'}</div>
-        </div>
-        ${termsLines.length? `
-        <div class="inv-terms">
-          <div>${termsLeft.map(t=>`*${t}<br>`).join('')}</div>
-          <div>${termsRight.map(t=>`*${t}<br>`).join('')}</div>
-        </div>` : ''}
-      </div>
-    </div>
-  `;
-}
-async function updateCompany(key, val){
-  state.company[key] = val;
-  await persist();
-}
-
-/* ---------------- Pengaturan & Backup ---------------- */
-function renderPengaturan(){
-  const totalEvent = state.events.length;
-  const cloudPanel = `
-    <div class="panel">
-      <div class="panel-head"><h3>Sinkronisasi Cloud & Google Calendar (otomatis, semua perangkat)</h3></div>
-      <div class="panel-body">
-        <p style="font-size:13.5px;color:var(--ink-soft);line-height:1.7;margin-top:0;">
-          Aplikasi ini sudah otomatis tersambung ke database Google Sheets Setangkai Project — perangkat baru pun langsung tersambung sendiri tanpa perlu isi apa pun. Kolom di bawah ini hanya diperlukan kalau suatu saat kamu ingin pindah ke database baru.
-        </p>
-        <p style="font-size:13.5px;color:var(--ink-soft);line-height:1.7;">
-          Setiap kali event ditambah/diedit/dihapus, script di Google Apps Script juga otomatis membuat/mengubah/menghapus event yang sesuai di <b>Google Calendar</b> milik akun pemilik spreadsheet — tidak perlu login/OAuth tambahan di aplikasi ini. Fitur ini aktif otomatis begitu kamu memakai kode Apps Script versi terbaru di bawah (lihat langkah 8).
-        </p>
-        <div class="field"><label>URL Web App (dari Google Apps Script)</label><input id="cloud-url-input" value="${escapeHtml(cloudUrl)}" placeholder="https://script.google.com/macros/s/xxxxxxxx/exec"></div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="btn" onclick="connectCloud()">${cloudUrl? 'Sambungkan Ulang' : 'Sambungkan'}</button>
-          <button class="btn secondary" onclick="syncNow()">Sinkron Sekarang</button>
-          ${cloudUrl? `<button class="btn secondary" onclick="disconnectCloud()">Putuskan Sambungan</button>` : ''}
-        </div>
-        <div class="hint" style="margin-top:10px;">Status: <b>${syncStatusText()}</b></div>
-
-        <div class="section-title">Cara Setup (sekali saja, ±5 menit)</div>
-        <ol style="font-size:12.5px;color:var(--ink-soft);line-height:2;padding-left:18px;margin:0 0 14px 0;">
-          <li>Buka <b>sheets.google.com</b>, buat Spreadsheet baru (bebas namanya).</li>
-          <li>Menu <b>Extensions → Apps Script</b>.</li>
-          <li>Hapus semua kode default di editor, lalu tempel kode di bawah ini (tombol "Salin Kode").</li>
-          <li>Klik ikon <b>Save</b>, lalu <b>Deploy → New deployment</b>.</li>
-          <li>Pilih tipe <b>Web app</b>. Isi "Execute as": <b>Me</b>, "Who has access": <b>Anyone</b>. Klik <b>Deploy</b> dan izinkan akses saat diminta.</li>
-          <li>Copy URL yang muncul (diakhiri <code>/exec</code>), tempel di kolom "URL Web App" di atas, klik <b>Sambungkan</b>.</li>
-          <li>Di perangkat lain (HP/laptop lain), buka aplikasi ini, ulangi langkah 6 saja dengan URL yang sama — otomatis tersambung ke data yang sama.</li>
-          <li>Kalau sebelumnya kode Apps Script-mu belum punya fitur Calendar: tempel ulang kode terbaru di bawah ini, <b>Save</b>, lalu <b>Deploy → Manage deployments → Edit (ikon pensil) → New version → Deploy</b>. Saat itu Google akan minta izin akses <b>Google Calendar</b> — klik <b>Allow</b>. Setelah itu, setiap tambah/edit/hapus event otomatis muncul di Google Calendar akun tersebut.</li>
-        </ol>
-        <div class="hint" style="margin-bottom:8px;">Penting: kalau suatu saat kamu mengubah kode di Apps Script, harus <b>Deploy → Manage deployments → Edit → New version</b> agar perubahan aktif — URL-nya tidak berubah.</div>
-        <textarea class="code-box" readonly onclick="this.select()">${escapeHtml(APPS_SCRIPT_CODE)}</textarea>
-        <button class="btn secondary" style="margin-top:8px;" onclick="copyScriptCode()">Salin Kode</button>
-      </div>
-    </div>
-  `;
-  return `
-    ${cloudPanel}
-    <div class="panel">
-      <div class="panel-head"><h3>Backup Data</h3></div>
-      <div class="panel-body">
-        <p style="font-size:13.5px;color:var(--ink-soft);line-height:1.7;margin-top:0;">
-          Data kamu (${totalEvent} event, tim, Package, dan pengaturan usaha) otomatis tersimpan di browser ini setiap kali ada perubahan — tidak perlu download/upload untuk pemakaian sehari-hari.
-          Tombol di bawah ini untuk <b>cadangan tambahan</b>, atau kalau kamu mau pindah ke perangkat/browser lain.
-        </p>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="btn" onclick="downloadBackup()">${ICONS.download} Unduh Backup (.json)</button>
-          <button class="btn secondary" onclick="document.getElementById('restore-file-input').click()">${ICONS.upload} Pulihkan dari Backup</button>
-          <input type="file" id="restore-file-input" accept="application/json" style="display:none;" onchange="handleRestoreFile(event)">
-        </div>
-        <div class="hint" style="margin-top:10px;">Memulihkan backup akan <b>mengganti semua data yang ada saat ini</b> di perangkat ini dengan isi file backup.</div>
-      </div>
-    </div>
-    <div class="panel">
-      <div class="panel-head"><h3>Export ke Excel</h3></div>
-      <div class="panel-body">
-        <p style="font-size:13.5px;color:var(--ink-soft);line-height:1.7;margin-top:0;">
-          Unduh seluruh data Jadwal &amp; Keuangan dalam format CSV yang bisa langsung dibuka di Excel atau Google Sheets — kolomnya sama seperti pembukuan manual kamu.
-        </p>
-        <button class="btn secondary" onclick="exportKeuanganCSV()">${ICONS.download} Export Keuangan (.csv)</button>
-      </div>
-    </div>
-    <div class="panel">
-      <div class="panel-head"><h3>Tentang Penyimpanan</h3></div>
-      <div class="panel-body" style="font-size:13px;color:var(--ink-soft);line-height:1.8;">
-        Data tersimpan otomatis di browser tempat kamu membuka aplikasi ini (tidak perlu koneksi internet setelah file dimuat).
-        Kalau kamu buka dari HP dan laptop secara bergantian, datanya <b>tidak otomatis sinkron</b> antar keduanya karena masing-masing tersimpan terpisah per perangkat/browser.
-        Untuk memindahkan data antar perangkat, pakai "Unduh Backup" di perangkat lama lalu "Pulihkan dari Backup" di perangkat baru.
-      </div>
-    </div>
-  `;
-}
-function downloadFile(filename, content, mime){
-  const blob = new Blob([content], {type:mime});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-function downloadBackup(){
-  const stamp = new Date().toISOString().slice(0,10);
-  downloadFile(`setangkai-backup-${stamp}.json`, JSON.stringify(state, null, 2), 'application/json');
-  showToast("Backup diunduh");
-}
-function handleRestoreFile(evt){
-  const file = evt.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = async ()=>{
-    try{
-      const parsed = JSON.parse(reader.result);
-      if(!parsed || !Array.isArray(parsed.events)){ showToast("File backup tidak valid"); return; }
-      if(!confirm("Ini akan mengganti semua data saat ini dengan isi file backup. Lanjutkan?")) return;
-      state = parsed;
-      await persist();
-      render();
-      showToast("Data berhasil dipulihkan");
-    }catch(e){
-      showToast("Gagal membaca file backup");
-    }
-  };
-  reader.readAsText(file);
-  evt.target.value = '';
-}
-function csvEscape(v){
-  const s = String(v==null? '' : v);
-  if(/[",\n]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
-  return s;
-}
-function exportKeuanganCSV(){
-  const headers = ["No Invoice","Nama Klien","Acara","Tanggal","Lokasi","Job","Budget","Foto","Video","FD","Cetak","Crew","Transport","Dll","Kas"];
-  const rows = [headers];
-  state.events.slice().sort((a,b)=> new Date(a.date||0) - new Date(b.date||0)).forEach(e=>{
-    const f = getFinance(e.id);
-    const t = eventTotals(e.id);
-    rows.push([
-      e.invoiceNo||'', e.name||'', e.acara||'', e.date||'', e.venue||'', e.job||'',
-      t.budget, f.biayaFoto||0, f.biayaVideo||0, f.biayaFD||0, f.biayaCetak||0, f.biayaCrew||0, f.biayaTransport||0, f.biayaLain||0, t.kas
-    ]);
-  });
-  const csv = rows.map(r=>r.map(csvEscape).join(',')).join('\r\n');
-  const stamp = new Date().toISOString().slice(0,10);
-  downloadFile(`setangkai-keuangan-${stamp}.csv`, '\uFEFF'+csv, 'text/csv;charset=utf-8;');
-  showToast("File CSV diunduh");
-}
-
-/* ---------------- Drawer helper (dengan auto-simpan draf) ---------------- */
-let formDrafts = {}; // draftKey -> { elementId: value }
-let currentDraftKey = null;
-let drawerInitialSnapshot = {};
-let captureCurrentDraft = null;
-
-function openDrawer(title, bodyHtml, onSave, draftKey){
-  let overlay = document.getElementById('drawer-overlay');
-  if(overlay) overlay.remove();
-  overlay = document.createElement('div');
-  overlay.className = 'overlay';
-  overlay.id = 'drawer-overlay';
-  overlay.innerHTML = `
-    <div class="drawer">
-      <div class="drawer-head">
-        <h3>${title}</h3>
-        <div class="close-x" onclick="attemptCloseDrawer()">${ICONS.close}</div>
-      </div>
-      <div class="drawer-body">${bodyHtml}</div>
-      <div class="drawer-foot">
-        <button class="btn secondary" onclick="attemptCloseDrawer()">Batal</button>
-        <button class="btn" id="drawer-save">Simpan</button>
-      </div>
-    </div>
-  `;
-  // sengaja TIDAK menutup saat klik di luar (backdrop) — supaya isian tidak hilang karena kesenggol/salah tap
-  document.body.appendChild(overlay);
-  requestAnimationFrame(()=>overlay.classList.add('open'));
-
-  currentDraftKey = draftKey || null;
-  const fields = Array.from(overlay.querySelectorAll('.drawer-body [id]'));
-
-  // pulihkan draf yang belum sempat disimpan sebelumnya (kalau ada)
-  if(currentDraftKey && formDrafts[currentDraftKey]){
-    const d = formDrafts[currentDraftKey];
-    fields.forEach(el=>{ if(el.id in d) el.value = d[el.id]; });
-    if(typeof updateKasPreview==='function' && document.getElementById('f-budget')) updateKasPreview();
-    showToast("Melanjutkan draf yang belum disimpan");
-  }
-
-  // snapshot nilai awal untuk cek "ada perubahan yang belum disimpan"
-  drawerInitialSnapshot = {};
-  fields.forEach(el=>{ drawerInitialSnapshot[el.id] = el.value; });
-
-  function captureDraft(){
-    if(!currentDraftKey) return;
-    const d = {};
-    fields.forEach(el=>{ d[el.id] = el.value; });
-    formDrafts[currentDraftKey] = d;
-  }
-  captureCurrentDraft = captureDraft;
-  fields.forEach(el=>{
-    el.addEventListener('input', captureDraft);
-    el.addEventListener('change', captureDraft);
-  });
-
-  document.getElementById('drawer-save').onclick = async ()=>{
-    const ok = await onSave();
-    if(ok!==false){
-      if(currentDraftKey) delete formDrafts[currentDraftKey];
-      closeDrawerForce();
-    }
-  };
-}
-function isDrawerDirty(){
-  const overlay = document.getElementById('drawer-overlay');
-  if(!overlay) return false;
-  const fields = overlay.querySelectorAll('.drawer-body [id]');
-  let dirty = false;
-  fields.forEach(el=>{ if((drawerInitialSnapshot[el.id]||'') !== el.value) dirty = true; });
-  return dirty;
-}
-function attemptCloseDrawer(){
-  if(isDrawerDirty()){
-    if(!confirm("Ada isian yang belum disimpan.\n\nTutup jendela ini? Draf yang sudah diisi akan otomatis tersimpan sementara dan bisa dilanjutkan kalau kamu buka formulir ini lagi.")) return;
-  }
-  closeDrawerForce();
-}
-function closeDrawerForce(){
-  const overlay = document.getElementById('drawer-overlay');
-  captureCurrentDraft = null;
-  if(!overlay) return;
-  overlay.classList.remove('open');
-  setTimeout(()=>overlay.remove(), 200);
-}
-
-/* ---------------- Init ---------------- */
-(async function init(){
-  document.getElementById('app').innerHTML = `<div style="padding:60px;text-align:center;color:#7A7466;font-family:Inter,sans-serif;">Memuat data...</div>`;
-  state = await loadState();
-  render();
-})();
+render();
 </script>
 </body>
 </html>
