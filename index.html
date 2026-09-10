@@ -771,7 +771,7 @@ function renderSidebar(){
   const items = [
     {id:'dashboard', label:'Dashboard', icon:ICONS.dashboard},
     {id:'jadwal', label:'Jadwal Event', icon:ICONS.calendar},
-    {id:'paket', label:'Paket', icon:ICONS.box},
+    {id:'Package', label:'Package', icon:ICONS.box},
     {id:'keuangan', label:'Keuangan', icon:ICONS.money},
     {id:'tim', label:'Tim & Freelancer', icon:ICONS.team},
     {id:'penugasan', label:'Penugasan Tim', icon:ICONS.assign},
@@ -806,7 +806,7 @@ function pageTitleFor(view){
   return {
     dashboard: ["Dashboard", "Ringkasan bisnis Setangkai Project"],
     jadwal: ["Jadwal Event", "Semua booking wedding, dari awal sampai selesai"],
-    paket: ["Paket", "Katalog paket layanan — bisa langsung dipakai saat tambah event"],
+    Package: ["Package", "Katalog Package layanan — bisa langsung dipakai saat tambah event"],
     keuangan: ["Keuangan", "Budget, rincian biaya, dan kas per event — seperti pembukuan kamu"],
     tim: ["Tim & Freelancer", "Fotografer, videografer, editor, dan asisten"],
     penugasan: ["Penugasan Tim", "Siapa bertugas di event mana (catatan internal)"],
@@ -819,7 +819,7 @@ function renderTopbar(){
   const [title, sub] = pageTitleFor(currentView);
   let actionBtn = "";
   if(currentView==='jadwal' || currentView==='keuangan') actionBtn = `<button class="btn" onclick="openEventForm()">${ICONS.plus} Tambah Event</button>`;
-  if(currentView==='paket') actionBtn = `<button class="btn" onclick="openPackageForm()">${ICONS.plus} Tambah Paket</button>`;
+  if(currentView==='Package') actionBtn = `<button class="btn" onclick="openPackageForm()">${ICONS.plus} Tambah Package</button>`;
   if(currentView==='tim') actionBtn = `<button class="btn" onclick="openTeamForm()">${ICONS.plus} Tambah Tim</button>`;
   if(currentView==='penugasan') actionBtn = `<button class="btn" onclick="openAssignForm()">${ICONS.plus} Tambah Penugasan</button>`;
   if(currentView==='invoice') actionBtn = `<button class="btn" onclick="window.print()">${ICONS.print} Cetak</button>`;
@@ -845,7 +845,7 @@ function renderView(){
   switch(currentView){
     case 'dashboard': return renderDashboard();
     case 'jadwal': return renderJadwal();
-    case 'paket': return renderPaket();
+    case 'Package': return renderPackage();
     case 'keuangan': return renderKeuangan();
     case 'tim': return renderTim();
     case 'penugasan': return renderPenugasan();
@@ -1008,10 +1008,10 @@ function openEventForm(id){
     </div>
     <div class="field"><label>Catatan</label><textarea id="f-notes">${ev.notes||''}</textarea></div>
 
-    <div class="section-title">Detail Paket (untuk Invoice)</div>
-    ${state.packages.length? `<div class="field"><label>Pilih dari Katalog Paket (opsional)</label><select id="f-pkgPick" onchange="prefillPackage()"><option value="">— pilih paket —</option>${state.packages.map(p=>`<option value="${p.id}">${p.name} (${fmtMoney(p.price)})</option>`).join('')}</select></div>` : `<div class="hint" style="margin-bottom:14px;">Belum ada katalog paket. Kamu bisa isi manual di bawah, atau buat katalog dulu di halaman "Paket".</div>`}
-    <div class="field"><label>Nama Paket</label><input id="f-packageName" value="${ev.packageName||''}" placeholder="mis. Lavatera Wedding"></div>
-    <div class="field"><label>Rincian Paket (satu baris = satu item)</label><textarea id="f-packageItems" style="min-height:110px;" placeholder="1 Photographer&#10;1 Videographer&#10;8 Hours Service">${ev.packageItems||''}</textarea></div>
+    <div class="section-title">Detail Package (untuk Invoice)</div>
+    ${state.packages.length? `<div class="field"><label>Pilih dari Katalog Package (opsional)</label><select id="f-pkgPick" onchange="prefillPackage()"><option value="">— pilih Package —</option>${state.packages.map(p=>`<option value="${p.id}">${p.name} (${fmtMoney(p.price)})</option>`).join('')}</select></div>` : `<div class="hint" style="margin-bottom:14px;">Belum ada katalog Package. Kamu bisa isi manual di bawah, atau buat katalog dulu di halaman "Package".</div>`}
+    <div class="field"><label>Nama Package</label><input id="f-packageName" value="${ev.packageName||''}" placeholder="mis. Lavatera Wedding"></div>
+    <div class="field"><label>Rincian Package (satu baris = satu item)</label><textarea id="f-packageItems" style="min-height:110px;" placeholder="1 Photographer&#10;1 Videographer&#10;8 Hours Service">${ev.packageItems||''}</textarea></div>
 
     <div class="section-title">Keuangan</div>
     <div class="field-row">
@@ -1152,16 +1152,16 @@ function renderKeuangan(){
   `;
 }
 
-/* ---------------- Paket ---------------- */
+/* ---------------- Package ---------------- */
 function packageById(id){ return state.packages.find(p=>p.id===id); }
-function renderPaket(){
+function renderPackage(){
   const rows = state.packages.slice();
   return `
     <div class="panel">
       <div class="table-wrap">
         ${rows.length? `
         <table>
-          <thead><tr><th>Nama Paket</th><th>Harga</th><th>Rincian</th><th></th></tr></thead>
+          <thead><tr><th>Nama Package</th><th>Harga</th><th>Rincian</th><th></th></tr></thead>
           <tbody>
             ${rows.map(p=>{
               const items = (p.items||'').split('\n').map(s=>s.trim()).filter(Boolean);
@@ -1181,20 +1181,20 @@ function renderPaket(){
               </tr>`;
             }).join('')}
           </tbody>
-        </table>` : emptyState("Belum ada paket", "Klik \"Tambah Paket\" untuk membuat katalog paket layanan pertama.")}
+        </table>` : emptyState("Belum ada Package", "Klik \"Tambah Package\" untuk membuat katalog Package layanan pertama.")}
       </div>
     </div>
   `;
 }
 function openPackageForm(id){
   const pk = id ? packageById(id) : {name:"", price:0, items:""};
-  openDrawer(id? "Edit Paket" : "Tambah Paket", `
-    <div class="field"><label>Nama Paket</label><input id="f-pname" value="${pk.name||''}" placeholder="mis. Lavatera Wedding"></div>
+  openDrawer(id? "Edit Package" : "Tambah Package", `
+    <div class="field"><label>Nama Package</label><input id="f-pname" value="${pk.name||''}" placeholder="mis. Lavatera Wedding"></div>
     <div class="field"><label>Harga (Rp)</label><input id="f-pprice" type="number" value="${pk.price||0}"></div>
-    <div class="field"><label>Rincian Paket (satu baris = satu item)</label><textarea id="f-pitems" style="min-height:150px;" placeholder="1 Photographer&#10;1 Videographer&#10;8 Hours Service">${pk.items||''}</textarea></div>
+    <div class="field"><label>Rincian Package (satu baris = satu item)</label><textarea id="f-pitems" style="min-height:150px;" placeholder="1 Photographer&#10;1 Videographer&#10;8 Hours Service">${pk.items||''}</textarea></div>
   `, async ()=>{
     const name = document.getElementById('f-pname').value.trim();
-    if(!name){ showToast("Nama paket wajib diisi"); return false; }
+    if(!name){ showToast("Nama Package wajib diisi"); return false; }
     const data = {
       name,
       price: Number(document.getElementById('f-pprice').value)||0,
@@ -1204,16 +1204,16 @@ function openPackageForm(id){
     else { const newId = uid('PKG', state.counters.package++); state.packages.push({id:newId, ...data}); }
     await persist();
     render();
-    showToast(id? "Paket diperbarui" : "Paket ditambahkan");
+    showToast(id? "Package diperbarui" : "Package ditambahkan");
     return true;
   }, 'package:' + (id || 'new'));
 }
 async function deletePackage(id){
-  if(!confirm("Hapus paket ini? Event yang sudah memakai paket ini tidak akan berubah.")) return;
+  if(!confirm("Hapus Package ini? Event yang sudah memakai Package ini tidak akan berubah.")) return;
   state.packages = state.packages.filter(p=>p.id!==id);
   await persist();
   render();
-  showToast("Paket dihapus");
+  showToast("Package dihapus");
 }
 
 /* ---------------- Tim & Freelancer ---------------- */
@@ -1403,7 +1403,7 @@ function renderInvoice(){
           <div class="panel-head"><h3>Pilih Event</h3></div>
           <div class="panel-body">
             <div class="field"><label>Event</label><select onchange="invoiceEventId=this.value; render();">${eventOptions}</select></div>
-            <div class="hint" style="margin-bottom:14px;">Detail paket, pasangan, dan waktu acara diisi lewat tombol Edit di halaman Jadwal Event.</div>
+            <div class="hint" style="margin-bottom:14px;">Detail Package, pasangan, dan waktu acara diisi lewat tombol Edit di halaman Jadwal Event.</div>
             <div class="field"><label>Nama Usaha</label><input id="c-name" value="${c.name||''}" onchange="updateCompany('name', this.value)"></div>
             <div class="field"><label>Social Media / Username</label><input id="c-social" value="${c.social||''}" onchange="updateCompany('social', this.value)" placeholder="@setangkaiproject"></div>
             <div class="field"><label>WA / Telepon</label><input id="c-phone" value="${c.phone||''}" onchange="updateCompany('phone', this.value)"></div>
@@ -1441,7 +1441,7 @@ function renderInvoice(){
               <tr>
                 <td>1</td>
                 <td>
-                  <div class="inv-pkg-name">${ev.packageName || ev.job || ev.acara || 'Paket'}</div>
+                  <div class="inv-pkg-name">${ev.packageName || ev.job || ev.acara || 'Package'}</div>
                   ${packageItems.length? `<ul class="inv-pkg-items">${packageItems.map(it=>`<li>${it}</li>`).join('')}</ul>` : ''}
                 </td>
                 <td>Rp. ${Number(t.budget||0).toLocaleString('id-ID')}</td>
@@ -1525,7 +1525,7 @@ function renderPengaturan(){
       <div class="panel-head"><h3>Backup Data</h3></div>
       <div class="panel-body">
         <p style="font-size:13.5px;color:var(--ink-soft);line-height:1.7;margin-top:0;">
-          Data kamu (${totalEvent} event, tim, paket, dan pengaturan usaha) otomatis tersimpan di browser ini setiap kali ada perubahan — tidak perlu download/upload untuk pemakaian sehari-hari.
+          Data kamu (${totalEvent} event, tim, Package, dan pengaturan usaha) otomatis tersimpan di browser ini setiap kali ada perubahan — tidak perlu download/upload untuk pemakaian sehari-hari.
           Tombol di bawah ini untuk <b>cadangan tambahan</b>, atau kalau kamu mau pindah ke perangkat/browser lain.
         </p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
