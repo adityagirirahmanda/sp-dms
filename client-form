@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Setangkai Project — Form Data Acara</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#2b2a24;
+    --cream:#f6f2ea;
+    --cream-2:#efe8d9;
+    --green-deep:#243527;
+    --green-mid:#3c5440;
+    --gold:#a9834f;
+    --gold-soft:#d9c3a0;
+    --blush:#c98f7b;
+    --line:#d8cdb8;
+    --white:#fffdf9;
+    --radius:2px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Jost', sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .stage{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 18px;
+    position:relative;
+    overflow:hidden;
+  }
+  .stage::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image:
+      radial-gradient(circle at 12% 18%, rgba(169,131,79,0.10), transparent 40%),
+      radial-gradient(circle at 88% 82%, rgba(60,84,64,0.12), transparent 42%);
+    pointer-events:none;
+  }
+
+  /* ---------- SCREENS ---------- */
+  .screen{
+    width:100%;
+    max-width:520px;
+    position:relative;
+    z-index:1;
+  }
+  .hidden{ display:none !important; }
+
+  /* ---------- WELCOME ---------- */
+  .welcome-card{
+    background:var(--white);
+    border:1px solid var(--line);
+    padding:64px 44px 48px;
+    text-align:center;
+    position:relative;
+  }
+  .welcome-card::before,
+  .welcome-card::after{
+    content:"";
+    position:absolute;
+    width:34px;
+    height:34px;
+    border:1px solid var(--gold);
+  }
+  .welcome-card::before{ top:14px; left:14px; border-right:none; border-bottom:none; }
+  .welcome-card::after{ bottom:14px; right:14px; border-left:none; border-top:none; }
+
+  .sprig{
+    width:64px;
+    height:auto;
+    margin:0 auto 22px;
+    display:block;
+    color:var(--green-mid);
+  }
+  .eyebrow-mark{
+    font-family:'Jost',sans-serif;
+    font-size:12.5px;
+    letter-spacing:0.14em;
+    color:var(--gold);
+    margin:0 0 14px;
+  }
+  .welcome-title{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:500;
+    font-size:44px;
+    line-height:1.12;
+    margin:0 0 6px;
+    color:var(--green-deep);
+  }
+  .welcome-title em{
+    font-style:italic;
+    color:var(--blush);
+  }
+  .welcome-sub{
+    font-size:15.5px;
+    line-height:1.65;
+    color:#5c5646;
+    max-width:360px;
+    margin:0 auto 34px;
+    font-weight:300;
+  }
+
+  .toggle-wrap{
+    display:flex;
+    justify-content:center;
+  }
+  .toggle{
+    position:relative;
+    width:230px;
+    height:56px;
+    background:var(--green-deep);
+    border:1px solid var(--green-deep);
+    cursor:pointer;
+    overflow:hidden;
+    font-family:'Jost',sans-serif;
+  }
+  .toggle .fill{
+    position:absolute;
+    inset:0;
+    background:var(--gold);
+    transform:translateX(-100%);
+    transition:transform .55s cubic-bezier(.65,0,.35,1);
+  }
+  .toggle.active .fill{ transform:translateX(0); }
+  .toggle-label{
+    position:relative;
+    z-index:2;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    color:var(--cream);
+    font-size:14.5px;
+    letter-spacing:0.06em;
+    transition:color .4s ease;
+  }
+  .toggle.active .toggle-label{ color:var(--green-deep); }
+  .toggle-label .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:currentColor;
+    transition:transform .4s ease;
+  }
+  .toggle.active .toggle-label .dot{ transform:translateX(4px); }
+  .toggle-hint{
+    margin-top:14px;
+    font-size:12px;
+    letter-spacing:0.05em;
+    color:#948a70;
+  }
+
+  /* ---------- FORM ---------- */
+  .form-card{
+    background:var(--white);
+    border:1px solid var(--line);
+    padding:38px 34px 40px;
+  }
+  .form-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    margin-bottom:26px;
+    padding-bottom:22px;
+    border-bottom:1px solid var(--line);
+  }
+  .form-head .back{
+    background:none;
+    border:none;
+    color:var(--green-mid);
+    font-family:'Jost',sans-serif;
+    font-size:13px;
+    letter-spacing:0.04em;
+    cursor:pointer;
+    padding:0;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    order:2;
+  }
+  .form-head .back:hover{ color:var(--blush); }
+  .form-titles{ order:1; }
+  .form-kicker{
+    font-size:11.5px;
+    letter-spacing:0.14em;
+    color:var(--gold);
+    margin:0 0 6px;
+  }
+  .form-title{
+    font-family:'Cormorant Garamond', serif;
+    font-size:30px;
+    color:var(--green-deep);
+    margin:0;
+    font-weight:500;
+  }
+
+  .field{
+    margin-bottom:22px;
+  }
+  .field label{
+    display:block;
+    font-size:12.5px;
+    letter-spacing:0.03em;
+    color:#6b6350;
+    margin-bottom:8px;
+  }
+  .field label .req{ color:var(--blush); margin-left:2px; }
+
+  .input, select.input{
+    width:100%;
+    border:none;
+    border-bottom:1px solid var(--line);
+    background:transparent;
+    padding:9px 2px;
+    font-family:'Jost',sans-serif;
+    font-size:15.5px;
+    color:var(--ink);
+    outline:none;
+    transition:border-color .25s ease;
+    appearance:none;
+    -webkit-appearance:none;
+    border-radius:0;
+  }
+  .input::placeholder{ color:#b3ab97; font-weight:300; }
+  .input:focus{ border-bottom-color:var(--gold); }
+
+  .ig-wrap{
+    display:flex;
+    align-items:center;
+    border-bottom:1px solid var(--line);
+    transition:border-color .25s ease;
+  }
+  .ig-wrap:focus-within{ border-bottom-color:var(--gold); }
+  .ig-wrap span{ color:#b3ab97; font-size:15.5px; padding:9px 0 9px 2px; }
+  .ig-wrap .input{ border-bottom:none; }
+
+  .select-wrap{ position:relative; }
+  .select-wrap::after{
+    content:"";
+    position:absolute;
+    right:4px; top:16px;
+    width:8px;height:8px;
+    border-right:1px solid var(--green-mid);
+    border-bottom:1px solid var(--green-mid);
+    transform:rotate(45deg);
+    pointer-events:none;
+  }
+
+  .row-2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+  }
+  @media (max-width:480px){
+    .row-2{ grid-template-columns:1fr; gap:0; }
+    .form-card{ padding:30px 22px 32px; }
+  }
+
+  /* date field trigger */
+  .date-trigger{
+    width:100%;
+    text-align:left;
+    border:none;
+    border-bottom:1px solid var(--line);
+    background:transparent;
+    padding:9px 2px;
+    font-family:'Jost',sans-serif;
+    font-size:15.5px;
+    color:var(--ink);
+    cursor:pointer;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .date-trigger.placeholder{ color:#b3ab97; font-weight:300; }
+  .date-trigger:hover{ border-bottom-color:var(--gold); }
+  .cal-icon{ color:var(--gold); flex-shrink:0; margin-left:10px; }
+
+  .date-field{ position:relative; }
+  .calendar-pop{
+    position:absolute;
+    top:calc(100% + 10px);
+    left:0;
+    width:290px;
+    background:var(--white);
+    border:1px solid var(--line);
+    box-shadow:0 14px 30px rgba(36,53,39,0.14);
+    padding:18px;
+    z-index:30;
+  }
+  .cal-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .cal-head .month-label{
+    font-family:'Cormorant Garamond',serif;
+    font-size:19px;
+    color:var(--green-deep);
+  }
+  .cal-nav{
+    background:none;border:none;cursor:pointer;
+    width:26px;height:26px;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--green-mid);
+  }
+  .cal-nav:hover{ color:var(--gold); }
+  .cal-grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:2px;
+    text-align:center;
+  }
+  .cal-dow{
+    font-size:10.5px;
+    letter-spacing:0.03em;
+    color:#a89f89;
+    padding-bottom:6px;
+  }
+  .cal-day{
+    font-size:13.5px;
+    padding:7px 0;
+    cursor:pointer;
+    color:var(--ink);
+    background:none;
+    border:none;
+    font-family:'Jost',sans-serif;
+  }
+  .cal-day:hover{ background:var(--cream-2); }
+  .cal-day.muted{ color:#d3ccbb; cursor:default; }
+  .cal-day.muted:hover{ background:none; }
+  .cal-day.today{ color:var(--blush); font-weight:600; }
+  .cal-day.selected{ background:var(--green-deep); color:var(--cream); }
+
+  /* map */
+  .map-shell{
+    border:1px solid var(--line);
+    padding:14px;
+  }
+  .map-note{
+    font-size:12px;
+    color:#7c7460;
+    margin:0 0 10px;
+    line-height:1.5;
+  }
+  #locMap{
+    width:100%;
+    height:220px;
+    border:1px solid var(--line);
+    filter:saturate(0.85) sepia(0.06);
+  }
+  .loc-result{
+    margin-top:12px;
+    font-size:13px;
+    color:var(--green-deep);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .loc-result .coords{ color:#7c7460; }
+  .loc-result a{
+    color:var(--gold);
+    text-decoration:none;
+    border-bottom:1px solid var(--gold-soft);
+  }
+  .loc-result a:hover{ color:var(--blush); border-color:var(--blush); }
+  .loc-empty{ font-size:12.5px; color:#a89f89; margin-top:10px; }
+
+  .submit-btn{
+    width:100%;
+    margin-top:8px;
+    padding:16px;
+    background:var(--green-deep);
+    color:var(--cream);
+    border:1px solid var(--green-deep);
+    font-family:'Jost',sans-serif;
+    font-size:14.5px;
+    letter-spacing:0.06em;
+    cursor:pointer;
+    transition:background .25s ease, color .25s ease;
+  }
+  .submit-btn:hover{ background:var(--gold); border-color:var(--gold); color:var(--green-deep); }
+  .submit-btn:disabled{
+    opacity:0.45;
+    cursor:not-allowed;
+    background:var(--green-deep);
+    color:var(--cream);
+  }
+
+  /* success */
+  .success-card{
+    background:var(--white);
+    border:1px solid var(--line);
+    padding:56px 40px;
+    text-align:center;
+  }
+  .check{
+    width:52px;height:52px;
+    border:1px solid var(--gold);
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    margin:0 auto 22px;
+    color:var(--gold);
+  }
+  .success-title{
+    font-family:'Cormorant Garamond',serif;
+    font-size:32px;
+    color:var(--green-deep);
+    margin:0 0 10px;
+  }
+  .success-sub{
+    font-size:14.5px;
+    color:#6b6350;
+    line-height:1.6;
+    margin:0 0 28px;
+    font-weight:300;
+  }
+  .summary{
+    text-align:left;
+    border-top:1px solid var(--line);
+    padding-top:22px;
+    margin-bottom:26px;
+  }
+  .summary-row{
+    display:flex;
+    justify-content:space-between;
+    gap:16px;
+    padding:9px 0;
+    border-bottom:1px dashed var(--line);
+    font-size:13.5px;
+  }
+  .summary-row:last-child{ border-bottom:none; }
+  .summary-row .k{ color:#8a8069; flex-shrink:0; }
+  .summary-row .v{ color:var(--ink); text-align:right; }
+  .edit-btn{
+    background:none;
+    border:1px solid var(--green-deep);
+    color:var(--green-deep);
+    padding:14px;
+    width:100%;
+    font-family:'Jost',sans-serif;
+    font-size:13.5px;
+    letter-spacing:0.05em;
+    cursor:pointer;
+  }
+  .edit-btn:hover{ background:var(--green-deep); color:var(--cream); }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <!-- ============ WELCOME SCREEN ============ -->
+  <section class="screen" id="screenWelcome">
+    <div class="welcome-card">
+      <svg class="sprig" viewBox="0 0 64 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 86V30" stroke="currentColor" stroke-width="1.2"/>
+        <path d="M32 46C32 46 14 40 14 22C14 22 32 24 32 46Z" stroke="currentColor" stroke-width="1.2"/>
+        <path d="M32 40C32 40 50 34 50 16C50 16 32 18 32 40Z" stroke="currentColor" stroke-width="1.2"/>
+        <path d="M32 58C32 58 16 54 16 38C16 38 32 39 32 58Z" stroke="currentColor" stroke-width="1.2"/>
+        <path d="M32 54C32 54 48 50 48 34C48 34 32 35 32 54Z" stroke="currentColor" stroke-width="1.2"/>
+        <circle cx="32" cy="16" r="6" stroke="currentColor" stroke-width="1.2"/>
+      </svg>
+      <p class="eyebrow-mark">SETANGKAI PROJECT</p>
+      <h1 class="welcome-title">Selamat datang<br>di <em>form acara</em> kami</h1>
+      <p class="welcome-sub">Ceritakan sedikit tentang acara Anda, agar kami bisa menyiapkan setiap detail dengan tepat.</p>
+      <div class="toggle-wrap">
+        <button class="toggle" id="toggleBtn" type="button" aria-label="Isi data">
+          <span class="fill"></span>
+          <span class="toggle-label"><span>Isi Data</span><span class="dot"></span></span>
+        </button>
+      </div>
+      <p class="toggle-hint">Geser untuk memulai</p>
+    </div>
+  </section>
+
+  <!-- ============ FORM SCREEN ============ -->
+  <section class="screen hidden" id="screenForm">
+    <div class="form-card">
+      <div class="form-head">
+        <div class="form-titles">
+          <p class="form-kicker">SETANGKAI PROJECT</p>
+          <h2 class="form-title">Data Acara Anda</h2>
+        </div>
+        <button class="back" id="backBtn" type="button">← kembali</button>
+      </div>
+
+      <form id="dataForm">
+        <div class="field">
+          <label for="nama">Nama &amp; Pasangan <span class="req">*</span></label>
+          <input class="input" type="text" id="nama" placeholder="mis. Raka &amp; Dinda" required>
+        </div>
+
+        <div class="field">
+          <label for="ig">Instagram</label>
+          <div class="ig-wrap">
+            <span>@</span>
+            <input class="input" type="text" id="ig" placeholder="namapengguna">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="jenis">Jenis Acara <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select class="input" id="jenis" required>
+              <option value="" disabled selected>Pilih jenis acara</option>
+              <option>Pernikahan</option>
+              <option>Pre-wedding</option>
+              <option>Lamaran</option>
+              <option>Engagement Party</option>
+              <option>Ulang Tahun</option>
+              <option>Lainnya</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="field date-field">
+            <label>Tanggal Acara <span class="req">*</span></label>
+            <button type="button" class="date-trigger placeholder" id="dateTrigger">
+              <span id="dateTriggerText">Pilih tanggal</span>
+              <svg class="cal-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="5" width="18" height="16" rx="1" stroke="currentColor" stroke-width="1.4"/>
+                <path d="M3 9H21" stroke="currentColor" stroke-width="1.4"/>
+                <path d="M8 3V6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                <path d="M16 3V6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <input type="hidden" id="tanggal" required>
+            <div class="calendar-pop hidden" id="calendarPop">
+              <div class="cal-head">
+                <button type="button" class="cal-nav" id="calPrev">‹</button>
+                <span class="month-label" id="calMonthLabel"></span>
+                <button type="button" class="cal-nav" id="calNext">›</button>
+              </div>
+              <div class="cal-grid" id="calGrid"></div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="waktu">Waktu Acara <span class="req">*</span></label>
+            <input class="input" type="time" id="waktu" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="paket">Paket yang Diambil <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select class="input" id="paket" required>
+              <option value="" disabled selected>Pilih paket</option>
+              <option>Paket Silver</option>
+              <option>Paket Gold</option>
+              <option>Paket Platinum</option>
+              <option>Custom Request</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="lokasi">Lokasi Acara <span class="req">*</span></label>
+          <input class="input" type="text" id="lokasi" placeholder="mis. Gedung Serbaguna, Bekasi" required>
+        </div>
+
+        <div class="field">
+          <label>Shareloc <span class="req">*</span></label>
+          <div class="map-shell">
+            <p class="map-note">Klik titik lokasi acara pada peta di bawah ini.</p>
+            <div id="locMap"></div>
+            <div class="loc-empty" id="locEmpty">Belum ada titik dipilih.</div>
+            <div class="loc-result hidden" id="locResult">
+              <span class="coords" id="locCoords"></span>
+              <a id="locLink" href="#" target="_blank" rel="noopener">Buka di Google Maps ↗</a>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">Kirim Data</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============ SUCCESS SCREEN ============ -->
+  <section class="screen hidden" id="screenSuccess">
+    <div class="success-card">
+      <div class="check">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 12L10 18L20 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h2 class="success-title">Terima kasih</h2>
+      <p class="success-sub">Data acara Anda sudah kami terima. Tim Setangkai Project akan segera menghubungi Anda.</p>
+      <div class="summary" id="summaryBox"></div>
+      <button class="edit-btn" id="editBtn" type="button">Ubah data</button>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(function(){
+  // ---------- SCREEN NAV ----------
+  const screenWelcome = document.getElementById('screenWelcome');
+  const screenForm = document.getElementById('screenForm');
+  const screenSuccess = document.getElementById('screenSuccess');
+  const toggleBtn = document.getElementById('toggleBtn');
+  const backBtn = document.getElementById('backBtn');
+  const editBtn = document.getElementById('editBtn');
+
+  let mapInited = false;
+
+  toggleBtn.addEventListener('click', function(){
+    toggleBtn.classList.add('active');
+    setTimeout(function(){
+      screenWelcome.classList.add('hidden');
+      screenForm.classList.remove('hidden');
+      if(!mapInited){ initMap(); mapInited = true; }
+    }, 420);
+  });
+
+  backBtn.addEventListener('click', function(){
+    screenForm.classList.add('hidden');
+    screenWelcome.classList.remove('hidden');
+    toggleBtn.classList.remove('active');
+  });
+
+  editBtn.addEventListener('click', function(){
+    screenSuccess.classList.add('hidden');
+    screenForm.classList.remove('hidden');
+  });
+
+  // ---------- CUSTOM CALENDAR ----------
+  const dateTrigger = document.getElementById('dateTrigger');
+  const dateTriggerText = document.getElementById('dateTriggerText');
+  const dateHidden = document.getElementById('tanggal');
+  const calendarPop = document.getElementById('calendarPop');
+  const calGrid = document.getElementById('calGrid');
+  const calMonthLabel = document.getElementById('calMonthLabel');
+  const calPrev = document.getElementById('calPrev');
+  const calNext = document.getElementById('calNext');
+
+  const monthNames = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+  const dowNames = ["Min","Sen","Sel","Rab","Kam","Jum","Sab"];
+
+  let today = new Date();
+  let viewYear = today.getFullYear();
+  let viewMonth = today.getMonth();
+  let selectedDate = null;
+
+  function renderCalendar(){
+    calMonthLabel.textContent = monthNames[viewMonth] + " " + viewYear;
+    calGrid.innerHTML = "";
+    dowNames.forEach(function(d){
+      const el = document.createElement('div');
+      el.className = 'cal-dow';
+      el.textContent = d;
+      calGrid.appendChild(el);
+    });
+    const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+    const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
+    const daysInPrevMonth = new Date(viewYear, viewMonth, 0).getDate();
+
+    for(let i=firstDay-1;i>=0;i--){
+      const el = document.createElement('button');
+      el.type='button';
+      el.className='cal-day muted';
+      el.textContent = daysInPrevMonth - i;
+      calGrid.appendChild(el);
+    }
+    for(let d=1; d<=daysInMonth; d++){
+      const el = document.createElement('button');
+      el.type='button';
+      el.className='cal-day';
+      el.textContent = d;
+      const thisDate = new Date(viewYear, viewMonth, d);
+      if(thisDate.toDateString() === today.toDateString()) el.classList.add('today');
+      if(selectedDate && thisDate.toDateString() === selectedDate.toDateString()) el.classList.add('selected');
+      el.addEventListener('click', function(){
+        selectedDate = thisDate;
+        const iso = thisDate.getFullYear()+"-"+String(thisDate.getMonth()+1).padStart(2,'0')+"-"+String(thisDate.getDate()).padStart(2,'0');
+        dateHidden.value = iso;
+        dateTriggerText.textContent = d + " " + monthNames[viewMonth] + " " + viewYear;
+        dateTrigger.classList.remove('placeholder');
+        calendarPop.classList.add('hidden');
+        renderCalendar();
+      });
+      calGrid.appendChild(el);
+    }
+    const totalCells = firstDay + daysInMonth;
+    const remaining = (7 - (totalCells % 7)) % 7;
+    for(let i=1;i<=remaining;i++){
+      const el = document.createElement('button');
+      el.type='button';
+      el.className='cal-day muted';
+      el.textContent = i;
+      calGrid.appendChild(el);
+    }
+  }
+
+  calPrev.addEventListener('click', function(){
+    viewMonth--; if(viewMonth<0){viewMonth=11; viewYear--;}
+    renderCalendar();
+  });
+  calNext.addEventListener('click', function(){
+    viewMonth++; if(viewMonth>11){viewMonth=0; viewYear++;}
+    renderCalendar();
+  });
+  dateTrigger.addEventListener('click', function(e){
+    e.stopPropagation();
+    calendarPop.classList.toggle('hidden');
+  });
+  document.addEventListener('click', function(e){
+    if(!calendarPop.contains(e.target) && e.target !== dateTrigger){
+      calendarPop.classList.add('hidden');
+    }
+  });
+  renderCalendar();
+
+  // ---------- MAP (Shareloc) ----------
+  let map, marker;
+  let picked = null;
+
+  function initMap(){
+    map = L.map('locMap', { zoomControl:true }).setView([-6.2350, 106.9896], 12); // default: Bekasi area
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    map.on('click', function(e){
+      setPoint(e.latlng.lat, e.latlng.lng);
+    });
+
+    setTimeout(function(){ map.invalidateSize(); }, 300);
+  }
+
+  function setPoint(lat, lng){
+    picked = {lat: lat, lng: lng};
+    if(marker){ map.removeLayer(marker); }
+    marker = L.marker([lat, lng]).addTo(map);
+    document.getElementById('locEmpty').classList.add('hidden');
+    document.getElementById('locResult').classList.remove('hidden');
+    document.getElementById('locCoords').textContent = lat.toFixed(5) + ", " + lng.toFixed(5);
+    const link = "https://www.google.com/maps?q=" + lat.toFixed(6) + "," + lng.toFixed(6);
+    document.getElementById('locLink').href = link;
+  }
+
+  // ---------- SUBMIT ----------
+  const dataForm = document.getElementById('dataForm');
+  dataForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    if(!picked){
+      document.getElementById('locEmpty').textContent = "Silakan pilih titik lokasi pada peta terlebih dahulu.";
+      document.getElementById('locEmpty').style.color = "var(--blush)";
+      document.getElementById('locMap').scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
+    if(!dateHidden.value){
+      alert("Silakan pilih tanggal acara.");
+      return;
+    }
+
+    const data = {
+      nama: document.getElementById('nama').value,
+      ig: document.getElementById('ig').value,
+      jenis: document.getElementById('jenis').value,
+      tanggal: dateTriggerText.textContent,
+      waktu: document.getElementById('waktu').value,
+      paket: document.getElementById('paket').value,
+      lokasi: document.getElementById('lokasi').value,
+      shareloc: document.getElementById('locLink').href
+    };
+
+    const rows = [
+      ["Nama & Pasangan", data.nama],
+      ["Instagram", data.ig ? "@"+data.ig : "-"],
+      ["Jenis Acara", data.jenis],
+      ["Tanggal Acara", data.tanggal],
+      ["Waktu Acara", data.waktu],
+      ["Paket", data.paket],
+      ["Lokasi Acara", data.lokasi],
+      ["Shareloc", "Lihat titik lokasi ↗"]
+    ];
+
+    const summaryBox = document.getElementById('summaryBox');
+    summaryBox.innerHTML = rows.map(function(r){
+      if(r[0] === "Shareloc"){
+        return '<div class="summary-row"><span class="k">'+r[0]+'</span><span class="v"><a href="'+data.shareloc+'" target="_blank" rel="noopener" style="color:var(--gold)">'+r[1]+'</a></span></div>';
+      }
+      return '<div class="summary-row"><span class="k">'+r[0]+'</span><span class="v">'+r[1]+'</span></div>';
+    }).join('');
+
+    screenForm.classList.add('hidden');
+    screenSuccess.classList.remove('hidden');
+  });
+})();
+</script>
+</body>
+</html>
