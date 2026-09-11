@@ -424,6 +424,8 @@ const APPS_SCRIPT_CODE = "// Setangkai Project - Cloud Database + Google Calenda
 "  var oldEvents = (oldData && oldData.events) || [];\n" +
 "  var newEvents = newData.events || [];\n" +
 "\n" +
+"  var oldById = {};\n" +
+"  oldEvents.forEach(function(ev) { oldById[ev.id] = ev; });\n" +
 "  var newIds = {};\n" +
 "  newEvents.forEach(function(ev) { newIds[ev.id] = true; });\n" +
 "\n" +
@@ -434,9 +436,23 @@ const APPS_SCRIPT_CODE = "// Setangkai Project - Cloud Database + Google Calenda
 "    }\n" +
 "  });\n" +
 "\n" +
-"  // buat / update / hapus (kalau status Batal) event Calendar untuk tiap booking\n" +
+"  // Supaya SETIAP kali simpan tidak perlu memanggil Calendar API untuk semua\n" +
+"  // event (lambat!), hanya event yang datanya benar-benar berubah (baru,\n" +
+"  // diedit, atau penugasan timnya berubah) yang diproses di sini.\n" +
+"  var CAL_FIELDS = ['date','waktuAcara','acara','pasangan','name','status','job','coordinator','notes','shareloc','venue','invoiceNo'];\n" +
 "  newEvents.forEach(function(ev) {\n" +
 "    if (!ev.date) return;\n" +
+"    var oldEv = oldById[ev.id];\n" +
+"    var changed = !oldEv || !ev.gcalEventId;\n" +
+"    if (!changed) {\n" +
+"      for (var i = 0; i < CAL_FIELDS.length; i++) {\n" +
+"        if ((oldEv[CAL_FIELDS[i]] || '') !== (ev[CAL_FIELDS[i]] || '')) { changed = true; break; }\n" +
+"      }\n" +
+"    }\n" +
+"    if (!changed && JSON.stringify(assignmentFingerprint_(oldData, ev.id)) !== JSON.stringify(assignmentFingerprint_(newData, ev.id))) {\n" +
+"      changed = true;\n" +
+"    }\n" +
+"    if (!changed) return;\n" +
 "\n" +
 "    if (ev.status === 'Batal') {\n" +
 "      if (ev.gcalEventId) {\n" +
@@ -482,6 +498,13 @@ const APPS_SCRIPT_CODE = "// Setangkai Project - Cloud Database + Google Calenda
 "      ev.gcalEventId = created.getId();\n" +
 "    }\n" +
 "  });\n" +
+"}\n" +
+"\n" +
+"function assignmentFingerprint_(data, eventId) {\n" +
+"  return ((data && data.assignments) || [])\n" +
+"    .filter(function(a) { return a.eventId === eventId; })\n" +
+"    .map(function(a) { return a.teamId + ':' + (a.role || ''); })\n" +
+"    .sort();\n" +
 "}\n" +
 "\n" +
 "// Membaca jam acara dari format \\\"07.00 - 17.00\\\". Kalau tidak ada / tidak\n" +
@@ -558,23 +581,26 @@ const APPS_SCRIPT_CODE = "// Setangkai Project - Cloud Database + Google Calenda
 "  if (!sheet) sheet = ss.insertSheet('Ringkasan Keuangan');\n" +
 "  sheet.clear();\n" +
 "  var headers = ['No Invoice','Nama Klien','Acara','Tanggal','Lokasi','Job','Budget','Foto','Video','FD','Cetak','Crew','Transport','Dll','Kas'];\n" +
-"  sheet.appendRow(headers);\n" +
 "  var events = (data.events || []).slice().sort(function(a, b) {\n" +
 "    return new Date(a.date || 0) - new Date(b.date || 0);\n" +
 "  });\n" +
 "  var finance = data.finance || {};\n" +
 "  var costKeys = ['biayaFoto','biayaVideo','biayaFD','biayaCetak','biayaCrew','biayaTransport','biayaLain'];\n" +
+"  var rows = [headers];\n" +
 "  events.forEach(function(ev) {\n" +
 "    var f = finance[ev.id] || {};\n" +
 "    var biaya = 0;\n" +
 "    costKeys.forEach(function(k) { biaya += Number(f[k]) || 0; });\n" +
 "    var kas = (Number(f.budget) || 0) - biaya;\n" +
-"    sheet.appendRow([\n" +
+"    rows.push([\n" +
 "      ev.invoiceNo || '', ev.name || '', ev.acara || '', ev.date || '', ev.venue || '', ev.job || '',\n" +
 "      Number(f.budget) || 0, Number(f.biayaFoto) || 0, Number(f.biayaVideo) || 0, Number(f.biayaFD) || 0,\n" +
 "      Number(f.biayaCetak) || 0, Number(f.biayaCrew) || 0, Number(f.biayaTransport) || 0, Number(f.biayaLain) || 0, kas\n" +
 "    ]);\n" +
 "  });\n" +
+"  // Satu kali panggilan setValues untuk semua baris sekaligus (jauh lebih cepat\n" +
+"  // dibanding appendRow() satu per satu, apalagi kalau event sudah banyak).\n" +
+"  sheet.getRange(1, 1, rows.length, headers.length).setValues(rows);\n" +
 "  sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');\n" +
 "  sheet.autoResizeColumns(1, headers.length);\n" +
 "}\n";
