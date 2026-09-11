@@ -211,16 +211,16 @@
     padding:32px 20px;
     background:
       radial-gradient(circle at 12% 8%, rgba(192,133,115,0.10) 0%, transparent 45%),
-      radial-gradient(circle at 88% 92%, rgba(47,75,60,0.08) 0%, transparent 45%),
+      radial-gradient(circle at 88% 92%, rgba(176,141,87,0.10) 0%, transparent 45%),
       var(--bg);
   }
-  .client-card{width:100%;max-width:460px;background:var(--surface);border-radius:22px;box-shadow:0 8px 40px rgba(34,57,44,0.14);overflow:hidden;}
-  .client-hero{background:linear-gradient(165deg, var(--primary) 0%, var(--primary-dark) 100%);padding:48px 36px 38px 36px;text-align:center;position:relative;}
+  .client-card{width:100%;max-width:460px;background:var(--surface);border-radius:22px;box-shadow:0 8px 40px rgba(28,27,25,0.14);overflow:hidden;}
+  .client-hero{background:linear-gradient(165deg, #2E2B26 0%, #1C1A17 100%);padding:48px 36px 38px 36px;text-align:center;position:relative;}
   .client-hero .flourish{width:64px;height:auto;margin:0 auto 22px auto;display:block;opacity:0.85;}
   .client-hero .client-logo{width:190px;max-width:75%;margin:0 auto 24px auto;display:block;}
-  .client-hero .rule{width:36px;height:1px;background:rgba(244,239,228,0.4);margin:0 auto 20px auto;}
+  .client-hero .rule{width:36px;height:1px;background:rgba(216,181,128,0.5);margin:0 auto 20px auto;}
   .client-hero h1{color:#fff;font-family:'Fraunces',serif;font-size:23px;font-weight:500;margin:0 0 10px 0;letter-spacing:0.01em;}
-  .client-hero p{color:#D9D2C0;font-size:13.5px;margin:0;line-height:1.75;max-width:300px;margin-left:auto;margin-right:auto;}
+  .client-hero p{color:#D7CFC0;font-size:13.5px;margin:0;line-height:1.75;max-width:300px;margin-left:auto;margin-right:auto;}
   .client-body{padding:38px 36px 34px 36px;}
   .client-body h2{font-family:'Fraunces',serif;font-size:19px;font-weight:500;margin:0 0 6px 0;color:var(--primary-dark);}
   .client-body .sub{font-size:13px;color:var(--ink-soft);margin:0 0 26px 0;line-height:1.7;}
@@ -239,16 +239,29 @@
     font-size:12px;font-weight:600;color:var(--ink);margin-bottom:7px;
     display:flex;align-items:center;gap:6px;
   }
+  .client-form .field label .req{color:var(--danger);font-weight:700;}
+  .client-form .field label .opt{color:var(--ink-soft);font-weight:400;text-transform:none;letter-spacing:0;font-size:11.5px;}
   .client-form .field label svg{width:13px;height:13px;color:var(--accent);flex-shrink:0;}
   .client-form .field input,
-  .client-form .field select{
+  .client-form .field select,
+  .client-form .field textarea{
     padding:12px 14px;border-radius:11px;border:1.5px solid var(--border);
     font-size:14px;background:#FDFCFA;transition:border-color .15s ease, box-shadow .15s ease;
+    width:100%;font-family:'Inter',sans-serif;
   }
+  .client-form .field textarea{min-height:80px;resize:vertical;}
   .client-form .field input:focus,
-  .client-form .field select:focus{
+  .client-form .field select:focus,
+  .client-form .field textarea:focus{
     border-color:var(--accent);box-shadow:0 0 0 3px rgba(192,133,115,0.14);background:#fff;
   }
+  .client-form .field-row{display:flex;gap:12px;}
+  .client-form .field-row .field{flex:1;}
+  .addon-list{display:flex;flex-direction:column;gap:8px;}
+  .addon-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid var(--border);border-radius:11px;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;background:#FDFCFA;}
+  .addon-item:has(input:checked){border-color:var(--accent);background:var(--accent-soft);}
+  .addon-item input{width:auto;flex-shrink:0;}
+  .addon-item .addon-price{margin-left:auto;color:var(--ink-soft);font-size:12px;}
   .maps-hint{background:var(--primary-soft);border-radius:10px;padding:11px 13px;font-size:11.5px;color:var(--primary-dark);line-height:1.65;margin-top:8px;}
   .maps-btn{width:100%;justify-content:center;border-radius:11px;padding:10px;font-size:13px;margin-top:9px;}
   .client-thanks{padding:56px 36px 50px 36px;text-align:center;}
@@ -271,10 +284,18 @@
   .pending-card .actions{display:flex;gap:10px;}
 
   @media print{
+    @page{ size: A4; margin: 0; }
     .sidebar,.topbar,.invoice-controls,.toast{display:none !important;}
     .content{padding:0;}
-    .invoice-sheet{box-shadow:none;border:none;max-width:100%;}
     body{background:#fff;}
+    .invoice-wrap{display:block;}
+    .invoice-sheet{
+      box-shadow:none;border:none;max-width:none;width:210mm;min-height:297mm;
+      margin:0 auto;padding:14mm 14mm;box-sizing:border-box;
+    }
+    .inv-header,.inv-title-wrap,.inv-pay-wrap,.inv-event-band,.inv-terms{page-break-inside:avoid;}
+    .inv-table thead{display:table-header-group;}
+    .inv-table tr{page-break-inside:avoid;}
   }
 
   .hamburger{display:none;}
@@ -425,24 +446,72 @@ const APPS_SCRIPT_CODE = "// Setangkai Project - Cloud Database + Google Calenda
 "      return;\n" +
 "    }\n" +
 "\n" +
-"    var dateObj = new Date(ev.date + 'T00:00:00');\n" +
-"    if (isNaN(dateObj.getTime())) return;\n" +
+"    var range = parseWaktuAcara_(ev.date, ev.waktuAcara);\n" +
+"    if (!range) return;\n" +
 "\n" +
-"    var title = (ev.name || 'Event') + ' - ' + (ev.acara || 'Wedding');\n" +
-"    var desc = buildEventDescription_(ev);\n" +
-"    var location = ev.venue || '';\n" +
+"    var title = (ev.acara || 'Acara') + ' - ' + (ev.pasangan || ev.name || 'Klien');\n" +
+"    var desc = buildEventDescription_(ev, newData);\n" +
+"    var location = ev.shareloc || ev.venue || '';\n" +
 "\n" +
 "    var existing = ev.gcalEventId ? getCalendarEventSafe_(cal, ev.gcalEventId) : null;\n" +
+"    if (existing && existing.isAllDayEvent() !== range.allDay) {\n" +
+"      // Tipe event berubah (jam tertentu <-> sepanjang hari) - Calendar API tidak\n" +
+"      // bisa mengubah tipe event yang sama, jadi hapus lalu buat ulang.\n" +
+"      deleteCalendarEvent_(cal, ev.gcalEventId);\n" +
+"      existing = null;\n" +
+"    }\n" +
+"\n" +
 "    if (existing) {\n" +
 "      existing.setTitle(title);\n" +
 "      existing.setDescription(desc);\n" +
 "      existing.setLocation(location);\n" +
-"      existing.setAllDayDate(dateObj);\n" +
+"      if (range.allDay) {\n" +
+"        existing.setAllDayDate(range.start);\n" +
+"      } else {\n" +
+"        existing.setTime(range.start, range.end);\n" +
+"      }\n" +
+"      applyH5Reminder_(existing, range);\n" +
 "    } else {\n" +
-"      var created = cal.createAllDayEvent(title, dateObj, {description: desc, location: location});\n" +
+"      var created;\n" +
+"      if (range.allDay) {\n" +
+"        created = cal.createAllDayEvent(title, range.start, {description: desc, location: location});\n" +
+"      } else {\n" +
+"        created = cal.createEvent(title, range.start, range.end, {description: desc, location: location});\n" +
+"      }\n" +
+"      applyH5Reminder_(created, range);\n" +
 "      ev.gcalEventId = created.getId();\n" +
 "    }\n" +
 "  });\n" +
+"}\n" +
+"\n" +
+"// Membaca jam acara dari format \\\"07.00 - 17.00\\\". Kalau tidak ada / tidak\n" +
+"// dikenali formatnya, event dibuat sepanjang hari (all-day) tanpa reminder jam 5 pagi.\n" +
+"function parseWaktuAcara_(dateStr, waktuAcara) {\n" +
+"  var baseDate = new Date(dateStr + 'T00:00:00');\n" +
+"  if (isNaN(baseDate.getTime())) return null;\n" +
+"  if (!waktuAcara) return {allDay: true, start: baseDate};\n" +
+"  var m = String(waktuAcara).match(/(\\d{1,2})[.:](\\d{2})\\s*-\\s*(\\d{1,2})[.:](\\d{2})/);\n" +
+"  if (!m) return {allDay: true, start: baseDate};\n" +
+"  var start = new Date(dateStr + 'T00:00:00');\n" +
+"  start.setHours(parseInt(m[1], 10), parseInt(m[2], 10), 0, 0);\n" +
+"  var end = new Date(dateStr + 'T00:00:00');\n" +
+"  end.setHours(parseInt(m[3], 10), parseInt(m[4], 10), 0, 0);\n" +
+"  if (end <= start) end = new Date(start.getTime() + 2 * 60 * 60 * 1000);\n" +
+"  return {allDay: false, start: start, end: end};\n" +
+"}\n" +
+"\n" +
+"// Mengatur reminder popup supaya berbunyi jam 05:00 pagi di hari-H (bukan\n" +
+"// sekian menit sebelum acara seperti reminder default Calendar).\n" +
+"function applyH5Reminder_(calEvent, range) {\n" +
+"  try {\n" +
+"    calEvent.removeAllReminders();\n" +
+"    if (range.allDay) return;\n" +
+"    var fiveAm = new Date(range.start.getFullYear(), range.start.getMonth(), range.start.getDate(), 5, 0, 0);\n" +
+"    var diffMinutes = Math.round((range.start.getTime() - fiveAm.getTime()) / 60000);\n" +
+"    calEvent.addPopupReminder(diffMinutes > 0 ? diffMinutes : 0);\n" +
+"  } catch (err) {\n" +
+"    // kalau gagal diatur, biarkan tanpa reminder custom\n" +
+"  }\n" +
 "}\n" +
 "\n" +
 "function getCalendarEventSafe_(cal, id) {\n" +
@@ -462,12 +531,19 @@ const APPS_SCRIPT_CODE = "// Setangkai Project - Cloud Database + Google Calenda
 "  }\n" +
 "}\n" +
 "\n" +
-"function buildEventDescription_(ev) {\n" +
+"function buildEventDescription_(ev, data) {\n" +
 "  var lines = [];\n" +
 "  if (ev.invoiceNo) lines.push('No. Invoice: ' + ev.invoiceNo);\n" +
 "  if (ev.job) lines.push('Job: ' + ev.job);\n" +
 "  if (ev.waktuAcara) lines.push('Waktu Acara: ' + ev.waktuAcara);\n" +
 "  if (ev.coordinator) lines.push('Koordinator: ' + ev.coordinator);\n" +
+"  var teamLines = [];\n" +
+"  ((data && data.assignments) || []).forEach(function(a) {\n" +
+"    if (a.eventId !== ev.id) return;\n" +
+"    var tm = ((data && data.team) || []).filter(function(t) { return t.id === a.teamId; })[0];\n" +
+"    if (tm) teamLines.push((a.role || tm.role || 'Tim') + ': ' + tm.name);\n" +
+"  });\n" +
+"  if (teamLines.length) lines.push('Tim Bertugas: ' + teamLines.join(', '));\n" +
 "  if (ev.status) lines.push('Status: ' + ev.status);\n" +
 "  if (ev.notes) lines.push('Catatan: ' + ev.notes);\n" +
 "  lines.push('');\n" +
@@ -510,16 +586,19 @@ function escapeHtml(s){
 function normalizeState(s){
   if(!s) return s;
   if(!Array.isArray(s.pendingBookings)) s.pendingBookings = [];
+  if(!Array.isArray(s.addons)) s.addons = [];
   if(!s.counters) s.counters = {};
   if(!s.counters.pending) s.counters.pending = 1;
+  if(!s.counters.addon) s.counters.addon = 1;
   return s;
 }
 
 function seedData(){
   return {
     company: { name:"Setangkai Project", tagline:"Wedding Photography & Videography Vendor", social:"@setangkaiproject", address:"", phone:"0899-0121-222", email:"setangkaiproject@gmail.com", bank:"BCA\n7391678174\na/n Aditya Giri Rahmanda", terms:"Uang muka IDR 500K untuk perjanjian tanggal\nMelakukan pelunasan H-7 sebelum acara\nPembatalan acara uang tidak dapat dikembalikan\nSyarat dan ketentuan berlaku" },
-    counters: { event:15, team:6, assign:6, package:3, pending:1 },
+    counters: { event:15, team:6, assign:6, package:3, pending:1, addon:1 },
     pendingBookings: [],
+    addons: [],
     packages: [
       {id:"PKG-001", name:"Lavatera Wedding", price:4300000, items:"1 Photographer\n1 Videographer\n8 Hours Service\nUnlimited Photoshoot\n250+ Edited Photo\nCinematic Video 2 - 3 Minutes\nReels Video 1 Minutes\nAll File in Flashdisk + Google Drive\n1 Exclusive Wedding Album"},
       {id:"PKG-002", name:"Silver Wedding", price:3500000, items:"1 Photographer\n1 Videographer\n6 Hours Service\n150+ Edited Photo\nCinematic Video 2 - 3 Minutes\nAll File in Flashdisk"},
@@ -893,7 +972,7 @@ function renderTopbar(){
   const [title, sub] = pageTitleFor(currentView);
   let actionBtn = "";
   if(currentView==='jadwal' || currentView==='keuangan') actionBtn = `<button class="btn" onclick="openEventForm()">${ICONS.plus} Tambah Event</button>`;
-  if(currentView==='paket') actionBtn = `<button class="btn" onclick="openPackageForm()">${ICONS.plus} Tambah Paket</button>`;
+  if(currentView==='paket') actionBtn = `<button class="btn secondary" style="margin-right:8px;" onclick="openAddonForm()">${ICONS.plus} Tambah Add-On</button><button class="btn" onclick="openPackageForm()">${ICONS.plus} Tambah Paket</button>`;
   if(currentView==='tim') actionBtn = `<button class="btn" onclick="openTeamForm()">${ICONS.plus} Tambah Tim</button>`;
   if(currentView==='penugasan') actionBtn = `<button class="btn" onclick="openAssignForm()">${ICONS.plus} Tambah Penugasan</button>`;
   if(currentView==='invoice') actionBtn = `<button class="btn" onclick="window.print()">${ICONS.print} Cetak</button>`;
@@ -1017,11 +1096,15 @@ function renderBookingMasuk(){
         <span class="badge b-new">Menunggu Persetujuan</span>
       </div>
       <div class="meta">
+        <div><b>Nama Pemesan</b> : ${b.pemesan || '-'}</div>
+        <div><b>Nomor WhatsApp</b> : ${b.waNumber || '-'}</div>
         <div><b>Instagram</b> : ${b.instagram || '-'}</div>
         <div><b>Jenis Acara</b> : ${b.acara || '-'}</div>
         <div><b>Tanggal Acara</b> : ${fmtDate(b.date)}</div>
-        <div><b>Waktu Acara</b> : ${b.waktuAcara || '-'}</div>
+        <div><b>Jam Acara</b> : ${b.waktuAcara || '-'}</div>
         <div><b>Paket</b> : ${b.packageName || '-'}</div>
+        <div><b>Add-On</b> : ${(b.addons&&b.addons.length)? b.addons.map(a=>a.name).join(', ') : '-'}</div>
+        <div><b>Catatan</b> : ${b.notes || '-'}</div>
         <div><b>Lokasi Acara</b> : ${b.venue || '-'}</div>
         <div><b>Shareloc</b> : ${b.shareloc? `<a href="${b.shareloc}" target="_blank" style="color:var(--primary);">Lihat di Maps</a>` : '-'}</div>
       </div>
@@ -1038,12 +1121,18 @@ async function approveBooking(id){
   if(!confirm(`Setujui booking dari "${b.name}"? Event baru akan dibuat di Jadwal Event.`)) return;
   const pkg = b.packageId ? packageById(b.packageId) : null;
   const newId = uid('EV', state.counters.event++);
+  const addonLines = (b.addons||[]).map(a=>'+ ' + a.name + ' (' + fmtMoney(a.price) + ')');
+  const baseItems = pkg ? pkg.items : '';
+  const packageItems = [baseItems, ...addonLines].filter(Boolean).join('\n');
+  const notesParts = [];
+  if(b.notes) notesParts.push('Catatan klien: ' + b.notes);
+  notesParts.push('Diisi mandiri oleh klien lewat formulir online');
   state.events.push({
-    id:newId, invoiceNo:"", name:b.name||"", clientPhone:"", pasangan:b.name||"",
+    id:newId, invoiceNo:"", name:b.pemesan||b.name||"", clientPhone:b.waNumber||"", pasangan:b.name||"",
     acara:b.acara||"", job: pkg? pkg.name : "", packageName: pkg? pkg.name : (b.packageName||""),
-    packageItems: pkg? pkg.items : "", waktuAcara:b.waktuAcara||"", date:b.date||"",
+    packageItems, waktuAcara:b.waktuAcara||"", date:b.date||"",
     venue:b.venue||"", instagram:b.instagram||"", shareloc:b.shareloc||"",
-    coordinator:"", status:"Booking Baru", notes:"Diisi mandiri oleh klien lewat formulir online"
+    coordinator:"", status:"Booking Baru", notes:notesParts.join('\n')
   });
   state.finance[newId] = {budget: pkg? pkg.price : 0, dp:0, pelunasan:0, biayaFoto:0, biayaVideo:0, biayaFD:0, biayaCetak:0, biayaCrew:0, biayaTransport:0, biayaLain:0};
   state.pendingBookings = state.pendingBookings.filter(x=>x.id!==id);
@@ -1121,8 +1210,8 @@ function openEventForm(id){
       <div class="field"><label>Tanggal Event</label><input id="f-date" type="date" value="${ev.date||''}"></div>
     </div>
     <div class="field-row">
-      <div class="field"><label>Nama Klien (kontak)</label><input id="f-name" value="${ev.name||''}" placeholder="mis. Kak Azki"></div>
-      <div class="field"><label>No. HP Klien</label><input id="f-clientPhone" value="${ev.clientPhone||''}" placeholder="mis. 0895-3957-91017"></div>
+      <div class="field"><label>Nama Pemesan</label><input id="f-name" value="${ev.name||''}" placeholder="mis. Rama"></div>
+      <div class="field"><label>No. WhatsApp Pemesan</label><input id="f-clientPhone" value="${ev.clientPhone||''}" placeholder="mis. 0895-3957-91017"></div>
     </div>
     <div class="field-row">
       <div class="field"><label>Nama & Pasangan (untuk invoice)</label><input id="f-pasangan" value="${ev.pasangan||''}" placeholder="mis. Azki & Rama"></div>
@@ -1294,8 +1383,10 @@ function renderKeuangan(){
 
 /* ---------------- Paket ---------------- */
 function packageById(id){ return state.packages.find(p=>p.id===id); }
+function addonById(id){ return (state.addons||[]).find(a=>a.id===id); }
 function renderPaket(){
   const rows = state.packages.slice();
+  const addonRows = (state.addons||[]).slice();
   return `
     <div class="panel">
       <div class="table-wrap">
@@ -1324,7 +1415,54 @@ function renderPaket(){
         </table>` : emptyState("Belum ada paket", "Klik \"Tambah Paket\" untuk membuat katalog paket layanan pertama.")}
       </div>
     </div>
+    <div class="section-title">Add-On (Opsional, tampil di formulir klien)</div>
+    <div class="panel">
+      <div class="table-wrap">
+        ${addonRows.length? `
+        <table>
+          <thead><tr><th>Nama Add-On</th><th>Harga</th><th></th></tr></thead>
+          <tbody>
+            ${addonRows.map(a=>`
+              <tr>
+                <td class="cell-strong">${a.name}</td>
+                <td>${fmtMoney(a.price)}</td>
+                <td>
+                  <div class="row-actions">
+                    <div class="icon-btn" onclick="openAddonForm('${a.id}')">${ICONS.edit}</div>
+                    <div class="icon-btn del" onclick="deleteAddon('${a.id}')">${ICONS.trash}</div>
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>` : emptyState("Belum ada add-on", "Klik \"Tambah Add-On\" untuk menawarkan tambahan opsional ke klien, mis. Cetak Foto Tambahan, Drone, dll.")}
+      </div>
+    </div>
   `;
+}
+function openAddonForm(id){
+  const a = id ? addonById(id) : {name:"", price:0};
+  openDrawer(id? "Edit Add-On" : "Tambah Add-On", `
+    <div class="field"><label>Nama Add-On</label><input id="f-aname" value="${a.name||''}" placeholder="mis. Cetak Foto 20R"></div>
+    <div class="field"><label>Harga (Rp)</label><input id="f-aprice" type="number" value="${a.price||0}"></div>
+  `, async ()=>{
+    const name = document.getElementById('f-aname').value.trim();
+    if(!name){ showToast("Nama add-on wajib diisi"); return false; }
+    const data = { name, price: Number(document.getElementById('f-aprice').value)||0 };
+    if(id){ Object.assign(addonById(id), data); }
+    else { const newId = uid('ADD', state.counters.addon++); state.addons.push({id:newId, ...data}); }
+    await persist();
+    render();
+    showToast(id? "Add-on diperbarui" : "Add-on ditambahkan");
+    return true;
+  }, 'addon:' + (id || 'new'));
+}
+async function deleteAddon(id){
+  if(!confirm("Hapus add-on ini?")) return;
+  state.addons = (state.addons||[]).filter(a=>a.id!==id);
+  await persist();
+  render();
+  showToast("Add-on dihapus");
 }
 function openPackageForm(id){
   const pk = id ? packageById(id) : {name:"", price:0, items:""};
@@ -1529,7 +1667,9 @@ function renderInvoice(){
   }
   const t = eventTotals(ev.id);
   const f = getFinance(ev.id);
-  const invoiceNo = ev.invoiceNo && ev.invoiceNo.trim() ? ev.invoiceNo : `INV/${new Date().getFullYear()}/${ev.id}`;
+  const baseInvoiceNo = ev.invoiceNo && ev.invoiceNo.trim() ? ev.invoiceNo : `INV/${new Date().getFullYear()}/${ev.id}`;
+  const invoiceSuffix = ev.status === 'DP Diterima' ? '-01' : (ev.status === 'Pelunasan' || ev.status === 'Selesai') ? '-02' : '';
+  const invoiceNo = baseInvoiceNo + invoiceSuffix;
   const todayStr = new Date().toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
   const packageItems = (ev.packageItems||'').split('\n').map(s=>s.trim()).filter(Boolean);
   const termsLines = (c.terms||'').split('\n').map(s=>s.trim()).filter(Boolean);
@@ -1793,26 +1933,44 @@ function renderClientWelcome(){
 }
 function renderClientForm(){
   const pkgOptions = (state.packages||[]).map(p=>`<option value="${p.id}">${p.name} (${fmtMoney(p.price)})</option>`).join('');
+  const addonList = state.addons||[];
   return `
     <div class="client-body client-form">
       <h2>Formulir Data Acara</h2>
       <p class="sub">Pastikan data yang kamu isi sudah benar ya — tim kami akan menghubungi untuk konfirmasi.</p>
 
       <div class="group-label">Tentang Kamu</div>
-      <div class="field"><label>${ICONS.heart} Nama & Pasangan</label><input id="cf-name" placeholder="mis. Azki & Rama"></div>
+      <div class="field"><label>${ICONS.heart} Nama Pemesan <span class="req">*</span></label><input id="cf-pemesan" placeholder="mis. Rama"></div>
+      <div class="field"><label>${ICONS.heart} Nama & Pasangan <span class="req">*</span></label><input id="cf-name" placeholder="mis. Azki & Rama"></div>
+      <div class="field"><label>${ICONS.clock} Nomor WhatsApp <span class="req">*</span></label><input id="cf-wa" placeholder="mis. 0895-3957-91017"></div>
       <div class="field"><label>${ICONS.at} Instagram</label><input id="cf-instagram" placeholder="@username"></div>
 
       <div class="group-label">Detail Acara</div>
       <div class="field"><label>${ICONS.camera} Jenis Acara</label><input id="cf-acara" list="cf-acara-list" placeholder="mis. Wedding, Engagement"></div>
       <datalist id="cf-acara-list"><option>Wedding</option><option>Engagement</option><option>Wedding + Mini Studio</option><option>Prewedding</option></datalist>
       <div class="field"><label>${ICONS.calendar} Tanggal Acara</label><input id="cf-date" type="date"></div>
-      <div class="field"><label>${ICONS.clock} Waktu Acara</label><input id="cf-waktu" placeholder="mis. 07.00 - 17.00"></div>
+      <div class="field-row">
+        <div class="field"><label>${ICONS.clock} Jam Mulai</label><input id="cf-waktu-mulai" type="time"></div>
+        <div class="field"><label>${ICONS.clock} Jam Selesai</label><input id="cf-waktu-selesai" type="time"></div>
+      </div>
       <div class="field">
         <label>${ICONS.gift} Paket yang Diambil</label>
         ${(state.packages||[]).length? `<select id="cf-package"><option value="">— pilih paket —</option>${pkgOptions}<option value="__lainnya">Lainnya / belum tahu</option></select>` : `<input id="cf-package-text" placeholder="mis. Lavatera Wedding">`}
       </div>
-
-      <div class="group-label">Lokasi</div>
+      ${addonList.length? `
+      <div class="field">
+        <label>${ICONS.gift} Add-On <span class="opt">(opsional)</span></label>
+        <div class="addon-list">
+          ${addonList.map(a=>`
+            <label class="addon-item">
+              <input type="checkbox" class="cf-addon" value="${a.id}">
+              <span>${a.name}</span>
+              <span class="addon-price">${fmtMoney(a.price)}</span>
+            </label>
+          `).join('')}
+        </div>
+      </div>` : ''}
+      <div class="field"><label>${ICONS.edit} Catatan <span class="opt">(opsional)</span></label><textarea id="cf-notes" placeholder="Ada permintaan khusus? Tulis di sini"></textarea></div>
       <div class="field"><label>${ICONS.map} Lokasi Acara</label><input id="cf-venue" placeholder="mis. Cluster Alamanda"></div>
       <div class="field">
         <label>${ICONS.map} Shareloc</label>
@@ -1848,15 +2006,20 @@ function normalizePhoneForWa_(phone){
 function sendWhatsAppNotification(b){
   const phone = normalizePhoneForWa_(state.company.phone);
   if(!phone){ showToast('Nomor WA admin belum diatur di Pengaturan → Invoice'); return; }
+  const addonText = (b.addons||[]).length ? b.addons.map(a=>a.name).join(', ') : '-';
   const lines = [
     'Halo ' + (state.company.name||'Setangkai Project') + ', saya ingin konfirmasi booking baru:',
     '',
+    'Nama Pemesan: ' + (b.pemesan || '-'),
     'Nama & Pasangan: ' + b.name,
+    'Nomor WhatsApp: ' + (b.waNumber || '-'),
     'Instagram: ' + (b.instagram || '-'),
     'Jenis Acara: ' + (b.acara || '-'),
     'Tanggal Acara: ' + fmtDate(b.date),
-    'Waktu Acara: ' + (b.waktuAcara || '-'),
+    'Jam Acara: ' + (b.waktuAcara || '-'),
     'Paket: ' + (b.packageName || '-'),
+    'Add-On: ' + addonText,
+    'Catatan: ' + (b.notes || '-'),
     'Lokasi Acara: ' + (b.venue || '-'),
     'Shareloc: ' + (b.shareloc || '-'),
     '',
@@ -1866,10 +2029,21 @@ function sendWhatsAppNotification(b){
   window.open('https://wa.me/' + phone + '?text=' + text, '_blank');
 }
 async function submitClientForm(){
+  const pemesan = document.getElementById('cf-pemesan').value.trim();
   const name = document.getElementById('cf-name').value.trim();
+  const wa = document.getElementById('cf-wa').value.trim();
   const date = document.getElementById('cf-date').value;
+  const waktuMulai = document.getElementById('cf-waktu-mulai').value;
+  const waktuSelesai = document.getElementById('cf-waktu-selesai').value;
+
+  if(!pemesan){ showToast('Nama Pemesan wajib diisi'); return; }
   if(!name){ showToast('Nama & Pasangan wajib diisi'); return; }
+  if(!wa){ showToast('Nomor WhatsApp wajib diisi'); return; }
   if(!date){ showToast('Tanggal Acara wajib diisi'); return; }
+  if(waktuMulai && waktuSelesai && waktuSelesai <= waktuMulai){
+    showToast('Jam selesai tidak boleh sebelum/sama dengan jam mulai');
+    return;
+  }
 
   let packageId = '', packageName = '';
   const pkgSelect = document.getElementById('cf-package');
@@ -1884,14 +2058,25 @@ async function submitClientForm(){
     packageName = pkgText? pkgText.value.trim() : '';
   }
 
+  const addons = Array.from(document.querySelectorAll('.cf-addon:checked')).map(el=>{
+    const a = (state.addons||[]).find(x=>x.id===el.value);
+    return a ? {id:a.id, name:a.name, price:a.price} : null;
+  }).filter(Boolean);
+
+  const waktuAcara = (waktuMulai && waktuSelesai) ? (waktuMulai.replace(':','.') + ' - ' + waktuSelesai.replace(':','.')) : '';
+
   const booking = {
     id: uid('PB', state.counters.pending++),
+    pemesan,
     name,
+    waNumber: wa,
     instagram: document.getElementById('cf-instagram').value.trim(),
     acara: document.getElementById('cf-acara').value.trim(),
     date,
-    waktuAcara: document.getElementById('cf-waktu').value.trim(),
+    waktuAcara,
     packageId, packageName,
+    addons,
+    notes: document.getElementById('cf-notes').value.trim(),
     venue: document.getElementById('cf-venue').value.trim(),
     shareloc: document.getElementById('cf-shareloc').value.trim(),
     submittedAt: new Date().toISOString(),
