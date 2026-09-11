@@ -622,48 +622,14 @@ function normalizeState(s){
 function seedData(){
   return {
     company: { name:"Setangkai Project", tagline:"Wedding Photography & Videography Vendor", social:"@setangkaiproject", address:"", phone:"0899-0121-222", email:"setangkaiproject@gmail.com", bank:"BCA\n7391678174\na/n Aditya Giri Rahmanda", terms:"Uang muka IDR 500K untuk perjanjian tanggal\nMelakukan pelunasan H-7 sebelum acara\nPembatalan acara uang tidak dapat dikembalikan\nSyarat dan ketentuan berlaku" },
-    counters: { event:15, team:6, assign:6, package:3, pending:1, addon:1 },
+    counters: { event:1, team:1, assign:1, package:1, pending:1, addon:1 },
     pendingBookings: [],
     addons: [],
-    packages: [
-      {id:"PKG-001", name:"Lavatera Wedding", price:4300000, items:"1 Photographer\n1 Videographer\n8 Hours Service\nUnlimited Photoshoot\n250+ Edited Photo\nCinematic Video 2 - 3 Minutes\nReels Video 1 Minutes\nAll File in Flashdisk + Google Drive\n1 Exclusive Wedding Album"},
-      {id:"PKG-002", name:"Silver Wedding", price:3500000, items:"1 Photographer\n1 Videographer\n6 Hours Service\n150+ Edited Photo\nCinematic Video 2 - 3 Minutes\nAll File in Flashdisk"},
-    ],
-    events: [
-      {id:"EV-001", invoiceNo:"", name:"Adara Project (Ana)", clientPhone:"", pasangan:"", acara:"Wedding", job:"Foto Video", packageName:"", packageItems:"", waktuAcara:"", date:"2026-11-07", venue:"Kaldera, Depok", coordinator:"", status:"Selesai", notes:""},
-      {id:"EV-002", invoiceNo:"", name:"Adara Project (Zelva)", clientPhone:"", pasangan:"", acara:"Wedding", job:"Foto Video", packageName:"", packageItems:"", waktuAcara:"", date:"2026-11-07", venue:"Kayu Ilir Ilir, Depok", coordinator:"", status:"Selesai", notes:""},
-      {id:"EV-003", invoiceNo:"SP000144", name:"Dona", clientPhone:"", pasangan:"", acara:"Wedding", job:"Foto Video", packageName:"", packageItems:"", waktuAcara:"", date:"2026-11-14", venue:"Sasono Mulyo, Depok", coordinator:"", status:"DP Diterima", notes:""},
-      {id:"EV-004", invoiceNo:"SP000148", name:"Kak Azki", clientPhone:"0895-3957-91017", pasangan:"Azki & Rama", acara:"Wedding", job:"Foto Video", packageName:"Lavatera Wedding", packageItems:"1 Photographer\n1 Videographer\n8 Hours Service\nUnlimited Photoshoot\n250+ Edited Photo\nCinematic Video 2 - 3 Minutes\nReels Video 1 Minutes\nAll File in Flashdisk + Google Drive\n1 Exclusive Wedding Album", waktuAcara:"07.00 - 17.00", date:"2026-11-22", venue:"Cluster Alamanda", coordinator:"", status:"DP Diterima", notes:""},
-      {id:"EV-005", invoiceNo:"", name:"Risma", clientPhone:"", pasangan:"", acara:"Wedding", job:"Foto Video", packageName:"", packageItems:"", waktuAcara:"", date:"2026-11-28", venue:"Kayu Ilir Ilir, Depok", coordinator:"", status:"Booking Baru", notes:""},
-      {id:"EV-006", invoiceNo:"SP000136", name:"Bayu Idhal", clientPhone:"", pasangan:"", acara:"Wedding + Mini Studio", job:"Foto Video Studio", packageName:"", packageItems:"", waktuAcara:"", date:"2026-11-29", venue:"Alamanda", coordinator:"", status:"DP Diterima", notes:""},
-      {id:"EV-007", invoiceNo:"SP000139", name:"Vio", clientPhone:"", pasangan:"", acara:"Engagement", job:"Foto Video", packageName:"", packageItems:"", waktuAcara:"", date:"2026-12-19", venue:"Brits Hotel Puri, Jakarta Barat", coordinator:"", status:"DP Diterima", notes:""},
-      {id:"EV-008", invoiceNo:"SP000117", name:"Aulia", clientPhone:"", pasangan:"", acara:"Wedding", job:"Foto Video Liputan", packageName:"", packageItems:"", waktuAcara:"", date:"2026-12-26", venue:"Bekasi, Tambun", coordinator:"", status:"DP Diterima", notes:""},
-      {id:"EV-009", invoiceNo:"SP000121", name:"Adam", clientPhone:"", pasangan:"", acara:"Engagement", job:"Foto Video", packageName:"", packageItems:"", waktuAcara:"", date:"2026-12-26", venue:"Aroem, Bekasi", coordinator:"", status:"DP Diterima", notes:""},
-      {id:"EV-010", invoiceNo:"", name:"Adin", clientPhone:"", pasangan:"", acara:"Engagement", job:"Foto Video", packageName:"", packageItems:"", waktuAcara:"", date:"2026-12-26", venue:"Ammarosa", coordinator:"", status:"Booking Baru", notes:""},
-    ],
-    team: [
-      {id:"TM-001", name:"Aji Pratama", role:"Fotografer", phone:"0812-3456-7890", rate:1500000, active:true, notes:"Lead photographer"},
-      {id:"TM-002", name:"Nina Kusuma", role:"Fotografer", phone:"0813-1111-2222", rate:1200000, active:true, notes:""},
-      {id:"TM-003", name:"Rian Saputra", role:"Videografer", phone:"0814-2222-3333", rate:1800000, active:true, notes:""},
-      {id:"TM-004", name:"Dewi Lestari", role:"Editor", phone:"0815-3333-4444", rate:800000, active:true, notes:"Editing foto & video"},
-      {id:"TM-005", name:"Fajar Nugroho", role:"Asisten", phone:"0816-4444-5555", rate:500000, active:true, notes:""},
-    ],
-    assignments: [
-      {id:"AS-001", eventId:"EV-001", teamId:"TM-001", role:"Fotografer", fee:1500000, paid:false},
-      {id:"AS-002", eventId:"EV-003", teamId:"TM-002", role:"Fotografer", fee:1200000, paid:false},
-    ],
-    finance: {
-      "EV-001": {budget:4500000, dp:4500000, pelunasan:0, biayaFoto:2650000, biayaVideo:1400000, biayaFD:100000, biayaCetak:350000, biayaCrew:0, biayaTransport:0, biayaLain:0},
-      "EV-002": {budget:3500000, dp:2800000, pelunasan:0, biayaFoto:1100000, biayaVideo:1300000, biayaFD:100000, biayaCetak:300000, biayaCrew:0, biayaTransport:0, biayaLain:0},
-      "EV-003": {budget:4500000, dp:1500000, pelunasan:0, biayaFoto:2050000, biayaVideo:1400000, biayaFD:100000, biayaCetak:350000, biayaCrew:0, biayaTransport:100000, biayaLain:0},
-      "EV-004": {budget:4300000, dp:500000, pelunasan:0, biayaFoto:2050000, biayaVideo:1300000, biayaFD:100000, biayaCetak:350000, biayaCrew:0, biayaTransport:0, biayaLain:0},
-      "EV-005": {budget:3500000, dp:1000000, pelunasan:0, biayaFoto:1100000, biayaVideo:1200000, biayaFD:0, biayaCetak:300000, biayaCrew:0, biayaTransport:0, biayaLain:0},
-      "EV-006": {budget:5500000, dp:2000000, pelunasan:0, biayaFoto:1300000, biayaVideo:1300000, biayaFD:100000, biayaCetak:400000, biayaCrew:1350000, biayaTransport:0, biayaLain:550000},
-      "EV-007": {budget:2800000, dp:1000000, pelunasan:0, biayaFoto:1200000, biayaVideo:1100000, biayaFD:0, biayaCetak:0, biayaCrew:0, biayaTransport:0, biayaLain:0},
-      "EV-008": {budget:5700000, dp:2000000, pelunasan:0, biayaFoto:1300000, biayaVideo:2100000, biayaFD:0, biayaCetak:500000, biayaCrew:0, biayaTransport:0, biayaLain:1300000},
-      "EV-009": {budget:2800000, dp:1000000, pelunasan:0, biayaFoto:800000, biayaVideo:800000, biayaFD:0, biayaCetak:0, biayaCrew:0, biayaTransport:0, biayaLain:700000},
-      "EV-010": {budget:2300000, dp:0, pelunasan:0, biayaFoto:1300000, biayaVideo:1000000, biayaFD:0, biayaCetak:0, biayaCrew:0, biayaTransport:0, biayaLain:0},
-    }
+    packages: [],
+    events: [],
+    team: [],
+    assignments: [],
+    finance: {}
   };
 }
 
