@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Setangkai Project — Isi Data Acara</title>
+<title>Setangkai Project — Sistem Manajemen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -2008,9 +2008,9 @@ function closeDrawerForce(){
 /* ---------------- Init ---------------- */
 (async function init(){
   document.getElementById('app').innerHTML = `<div style="padding:60px;text-align:center;color:#7A7466;font-family:Inter,sans-serif;">Memuat data...</div>`;
-  isClientMode = true; // file ini khusus formulir klien
+  isClientMode = false; // file ini khusus dashboard admin
   state = normalizeState(await loadState());
-  renderClientApp();
+  render();
 })();
 </script>
 </body>
