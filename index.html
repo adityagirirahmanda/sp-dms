@@ -1836,7 +1836,54 @@ function renderPengaturan(){
         Untuk memindahkan data antar perangkat, pakai "Unduh Backup" di perangkat lama lalu "Pulihkan dari Backup" di perangkat baru.
       </div>
     </div>
+    <div class="panel" style="border-color:var(--danger-soft);">
+      <div class="panel-head"><h3 style="color:var(--danger);">Zona Berbahaya</h3></div>
+      <div class="panel-body">
+        <p style="font-size:13.5px;color:var(--ink-soft);line-height:1.7;margin-top:0;">
+          Mengosongkan <b>semua data transaksi</b> — event, booking masuk, tim, paket, tambahan (addon), dan keuangan — baik yang tersimpan di perangkat ini maupun di database cloud (Google Sheets), supaya kamu bisa mulai input dari nol. Info usaha (nama, WA, rekening, syarat & ketentuan) di halaman Invoice <b>tidak ikut terhapus</b>.
+        </p>
+        <p style="font-size:12.5px;color:var(--danger);line-height:1.6;">Tindakan ini tidak bisa dibatalkan. Sebaiknya klik "Unduh Backup (.json)" di atas dulu sebelum lanjut, jaga-jaga.</p>
+        <button class="btn danger" onclick="resetAllData()">${ICONS.trash} Kosongkan Semua Data</button>
+      </div>
+    </div>
   `;
+}
+async function resetAllData(){
+  const step1 = confirm(
+    'Ini akan MENGHAPUS SEMUA DATA (event, booking masuk, tim, paket, addon, keuangan) di perangkat ini' +
+    (cloudUrl ? ' dan di database cloud (Google Sheets) — berlaku untuk semua perangkat yang tersambung' : '') +
+    '.\n\nInfo usaha (nama, WA, rekening, dll) TIDAK ikut terhapus.\n\nSudah unduh backup? Tindakan ini tidak bisa dibatalkan.\n\nLanjutkan?'
+  );
+  if(!step1) return;
+  const step2 = confirm('Konfirmasi sekali lagi: benar-benar kosongkan SEMUA data sekarang?');
+  if(!step2) return;
+
+  const fresh = seedData();
+  fresh.company = (state && state.company) ? state.company : fresh.company; // pertahankan info usaha yang sudah diisi
+
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+  try{ await window.storage.delete(STORAGE_KEY, false); }catch(e){}
+
+  state = normalizeState(fresh);
+
+  if(cloudUrl){
+    try{
+      syncStatus = 'syncing'; render();
+      await pushRemoteState(cloudUrl, state);
+      syncStatus = 'synced'; lastSyncAt = new Date();
+    }catch(e){
+      console.error('Gagal mengosongkan data cloud:', e);
+      syncStatus = 'error';
+      showToast('Data di perangkat ini sudah kosong, tapi gagal mengosongkan data cloud. Coba tombol "Sinkron Sekarang".');
+      await persist();
+      render();
+      return;
+    }
+  }
+
+  await persist();
+  render();
+  showToast('Semua data berhasil dikosongkan — siap input dari nol');
 }
 function downloadFile(filename, content, mime){
   const blob = new Blob([content], {type:mime});
